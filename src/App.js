@@ -1,6 +1,7 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import { DndContext, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
+
+
 import Board from './components/Board';
 import Sidebar from './components/Sidebar';
 import './App.css';
@@ -16,18 +17,34 @@ const gameBoard = {
 		'D1', 'D2', 'D3', 'D4'
 	],
 	edges: [
-		['D1', 'C1'], ['C1', 'C2'], ['C2', 'D2'],
-		['C1', 'C12'], ['C2', 'C3'],
-		['C12', 'B6'], ['C3', 'B1'],
-		['C11', 'B6'], ['B1', 'B2'],
-		['C10', 'B4'], ['B2', 'B3'],
-		['C9', 'B4'], ['B3', 'B2'],
-		['C8', 'D4'], ['B3', 'C7'],
-		['D4', 'C7'], ['C7', 'C6'],
-		['C6', 'B2'], ['C6', 'C5'],
-		['C5', 'B2'], ['C5', 'C4'],
-		['C4', 'B1'], ['C4', 'D3'],
-		['D3', 'C8']
+        // Home base White
+        ['D1', 'D2'],['D1', 'C1'],['D2', 'C2'],
+        
+        // Home base black
+        ['D3', 'D4'],['D3', 'C7'],['D4', 'C8'],
+
+        // C - Circumference
+        ['C1', 'C2'],['C2', 'C3'],['C3', 'C4'],
+        ['C4', 'C5'],['C5', 'C6'],['C6', 'C7'],
+        ['C7', 'C8'],['C8', 'C9'],['C9', 'C10'],
+        ['C10', 'C11'],['C11', 'C12'],['C12', 'C1'],
+
+        // B - Boundary
+        ['B1', 'B2'],['B2', 'B3'],['B3', 'B4'],
+        ['B4', 'B5'],['B5', 'B6'],['B6', 'B1'],
+
+        // C to B
+        ['C1', 'B1'],['C2', 'B1'],
+        ['C3', 'B2'],['C4', 'B2'],
+        ['C5', 'B3'],['C6', 'B3'],
+        ['C7', 'B4'],['C8', 'B4'],
+        ['C9', 'B5'],['C10', 'B5'],
+        ['C11', 'B6'],['C12', 'B6'],
+
+        // B to A (absolute Middle)
+        ['B1', 'A1'],['B2', 'A1'],['B3', 'A1'],
+        ['B4', 'A1'],['B5', 'A1'],['B6', 'A1'],
+
 	],
 	homeBases: {
 		white: ['C1', 'C2', 'D1', 'D2'],

@@ -21,23 +21,23 @@ const getPosition = (vertexId, svgSize, vWidth) => {
 		case 'B':
 			const angleB = (position - 1) * (Math.PI / 3);
 			return {
-				x: centerX + vWidth * Math.cos(angleB),
-				y: centerY + vWidth * Math.sin(angleB)
+				x: centerX + vWidth * Math.cos(angleB + Math.PI / 2),
+				y: centerY + vWidth * Math.sin(angleB + Math.PI / 2)
 			};
 		case 'C':
-			const angleC = (position - 1) * (Math.PI / 6);
-			const radiusC = vWidth * (1 + Math.sqrt(3/2));
+			const angleC = (position - 1) * (Math.PI / 6) - Math.PI  / 12 + Math.PI / 2;
+			const radiusC = vWidth * (1 + Math.sqrt(11/13)) - Math.PI  / 12 + Math.PI / 2;
 			return {
 				x: centerX + radiusC * Math.cos(angleC),
 				y: centerY + radiusC * Math.sin(angleC)
 			};
 		case 'D':
-			const angleDOffset = Math.PI / 12;
-			const angleD = (position - 1) * (Math.PI / 2) + angleDOffset;
-			const radiusD = vWidth * (1 + Math.sqrt(3));
+			const down = position > 2 ? -1 : 1;
+			const left = position == 1 || position == 4  ? 1 : -1;
+
 			return {
-				x: centerX + radiusD * Math.cos(angleD),
-				y: centerY + radiusD * Math.sin(angleD)
+				x: centerY + vWidth/2*left,
+				y: centerX + vWidth*3*down
 			};
 		default:
 			return { x: 0, y: 0 };
@@ -56,6 +56,7 @@ const Vertex = ({ vertexId, checker, position }) => {
 			transform={`translate(${position.x}, ${position.y})`}
 		>
 			<circle r="10" fill="gray" />
+			<text>{vertexId}</text>
 			{checker && (
 				<Checker
 					id={vertexId}
