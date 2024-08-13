@@ -18,7 +18,7 @@ const Checker = ({ id, color, isUpgraded }) => {
 			{...listeners}
 			{...attributes}
 		>
-			<circle r="8" fill={color.toLowerCase()} />
+			<circle r="15" fill={color.toLowerCase()} stroke='#222' />
 			{isUpgraded && (
 				<circle r="4" fill="gold" />
 			)}

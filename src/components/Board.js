@@ -55,8 +55,8 @@ const Vertex = ({ vertexId, checker, position }) => {
 			className={`vertex ${vertexId}`}
 			transform={`translate(${position.x}, ${position.y})`}
 		>
-			<circle r="10" fill="gray" />
-			<text>{vertexId}</text>
+			<circle r="5" fill="#888" />
+			<text dx={15} dy={15}>{vertexId}</text>
 			{checker && (
 				<Checker
 					id={vertexId}
@@ -105,7 +105,7 @@ const Board = ({ gameState, gameBoard }) => {
 							y1={fromPos.y}
 							x2={toPos.x}
 							y2={toPos.y}
-							stroke="black"
+							stroke="#888"
 							strokeWidth="2"
 						/>
 					);
