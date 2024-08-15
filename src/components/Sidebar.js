@@ -2,32 +2,20 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
 
-const Sidebar = ({ startNewGame, toggleDarkMode }) => {
+const Sidebar = ({ startNewGame, toggleDarkMode, children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <button className="hamburger" onClick={toggleSidebar}>
+      {/* <button className="hamburger" onClick={toggleSidebar}>
         ☰
-      </button>
+      </button> */}
       <div className="sidebar-content">
-        <button onClick={() => { startNewGame(); toggleSidebar(); }}>
-          New Game
-        </button>
-        <button onClick={() => { /* Implement find player logic */ }}>
-          Find Player Online
-        </button>
-        <button onClick={toggleDarkMode}>
-          Toggle Dark Mode
-        </button>
-        <button onClick={() => { /* Open settings modal */ }}>
-          Settings
-        </button>
-        <button onClick={() => { /* Open credits modal */ }}>
-          Credits
-        </button>
+
+        {/* Render Children */}
+        {children}
       </div>
     </div>
   );
