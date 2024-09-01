@@ -1,6 +1,6 @@
 // components/Board.js
 import React, { useRef, useState, useEffect, forwardRef } from 'react';
-import { useDroppable, useDraggable, DndContext, useDndMonitor } from '@dnd-kit/core';
+import { DndContext, useDraggable, useDroppable, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import Checker from './Checker';
 import './Board.css';
@@ -30,7 +30,8 @@ const Vertex = ({ vertexId, checker, position, canDrop }, ref) => {
 			}}	
 		>
 			<circle r="5" fill={style.color ?? "#888"}  cx={position.x} cy={position.y} />
-			<text strokeWidth={2} strokeColor={'#ffffff'} x={position.x+15} y={position.y+15}>{vertexId}</text>
+			
+			<text dominantBaseline="middle" paintOrder="stroke" strokeLineJoin="round" strokeWidth={5} stroke={'#ffffff'} x={position.x+15} y={position.y+15}>{vertexId}</text>
 		</g>
         
     );
@@ -40,21 +41,14 @@ const DraggableChecker = ({ id, color, isUpgraded, position }) => {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: id,
     });
-
-    const style = transform ? {
-        transform: CSS.Translate.toString(transform),
-        zIndex: 1000,
-        filter: 'drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.7))',
+	const style = {
+        transform: transform ? CSS.Translate.toString(transform) : 'none',
+        zIndex: transform ? 1000 : 1,
+        filter: transform ? 'drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.7))' : 'none',
         transition: 'filter 0.3s ease-in-out',
-		touchAaction: 'manipulation',
+        touchAction: 'manipulation', // Prevents the browser from handling touch events
 		scale:1
-    } : {
-        zIndex: 1000,
-        filter: 'drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.7))',
-        transition: 'filter 0.3s ease-in-out',
-		touchAaction: 'manipulation',
-		scale:1
-	};
+    };
 
     return (
         <g
@@ -79,6 +73,16 @@ const DraggableChecker = ({ id, color, isUpgraded, position }) => {
 
 const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize }, ref) => {
    
+	const touchSensor = useSensor(TouchSensor, {
+        // Require the touch to move by 5px before activating
+        activationConstraint: {
+            delay: 50, // 250ms delay
+            tolerance: 0, // 5px tolerance
+        },
+    });
+
+    const mouseSensor = useSensor(MouseSensor);
+    const sensors = useSensors(mouseSensor, touchSensor);
 
     const [draggedChecker, setDraggedChecker] = useState(null);
     const [highlightedVertices, setHighlightedVertices] = useState([]);
@@ -90,14 +94,14 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 		if (active?.id === over?.id) return;
 		console.log(active, over)
 
-		if (isValidMove(active?.id, over?.id)) {
+		if (isValidMove(gameState, active?.id, over?.id)) {
 			applyMove(active.id, over.id);
 		}
 	};
 
     return (
         <div ref={ref} className="board-container">
-			<DndContext onDragEnd={handleDragEnd}>
+			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
 				<svg
 					viewBox={`0 0 ${boardSize} ${boardSize}`}
 					width="100%"
@@ -127,7 +131,7 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 							vertexId={vertexId}
 							checker={gameState.checkers[vertexId]}
 							position={Data.getPosition(vertexId, boardSize, vWidth)}
-							canDrop={draggedChecker && isValidMove(draggedChecker, vertexId)}
+							canDrop={false} //draggedChecker && isValidMove(draggedChecker, vertexId)}
 						/>
 					))}
 

@@ -1,0 +1,7 @@
+.turn-indicator-container {
+	border-radius: 3px;
+
+	position: fixed;
+	justify-self: center;
+	align-self: center;
+}

@@ -1,64 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { DndContext, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 
-
-// import getPosition from './helpers/position.js';
-// import getPosition from './helpers/position';
-
-import {useBoardSize} from './hooks/useBoardSize';
+import AI from './AI';
+import { gameBoard, applyMoveToBoard } from './GameBoard';
+import { useBoardSize } from './hooks/useBoardSize';
 
 import Board from './components/Board';
 import Sidebar from './components/Sidebar';
 import './App.css';
-
 import Data from './helpers/position';
+
+import TurnIndicator from './components/TurnIndicator';
 
 const PADDING = 20; // Adjustable padding
 const isTouchDevice = 'ontouchstart' in window;
-
-// Define the game board structure
-const gameBoard = {
-	vertices: [
-		'A1', // Absolute Middle
-		'B1', 'B2', 'B3', 'B4', 'B5', 'B6', // Boundary
-		'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', // Circumference
-		'D1', 'D2', 'D3', 'D4' // Domestic
-	],
-	edges: [
-        // Home base White
-        ['D1', 'D2'],['D1', 'C1'],['D2', 'C2'],
-        
-        // Home base black
-        ['D3', 'D4'],['D3', 'C7'],['D4', 'C8'],
-
-        // C - Circumference
-        ['C1', 'C2'],['C2', 'C3'],['C3', 'C4'],
-        ['C4', 'C5'],['C5', 'C6'],['C6', 'C7'],
-        ['C7', 'C8'],['C8', 'C9'],['C9', 'C10'],
-        ['C10', 'C11'],['C11', 'C12'],['C12', 'C1'],
-
-        // B - Boundary
-        ['B1', 'B2'],['B2', 'B3'],['B3', 'B4'],
-        ['B4', 'B5'],['B5', 'B6'],['B6', 'B1'],
-
-        // C to B
-        ['C1', 'B1'],['C2', 'B1'],
-        ['C3', 'B2'],['C4', 'B2'],
-        ['C5', 'B3'],['C6', 'B3'],
-        ['C7', 'B4'],['C8', 'B4'],
-        ['C9', 'B5'],['C10', 'B5'],
-        ['C11', 'B6'],['C12', 'B6'],
-
-        // B to A (absolute Middle)
-        ['B1', 'A1'],['B2', 'A1'],['B3', 'A1'],
-        ['B4', 'A1'],['B5', 'A1'],['B6', 'A1'],
-
-	],
-	homeBases: {
-		white: ['C1', 'C2', 'D1', 'D2'],
-		black: ['C7', 'C8', 'D3', 'D4']
-	}
-};
 
 const initializeGameState = () => {
 	return {
@@ -115,7 +70,7 @@ const App = () => {
 		if (isAI && !stopAI && gameState.currentTurn === 'BLACK') {
 			const performAIMove = async () => {
 				await delay();
-				const BESTMOVE = getNextBestMove(gameState, 100);
+				const BESTMOVE = AI.getNextBestMove(gameState, 6, true);
 				const { move } = BESTMOVE;
 				console.log('BESTMOVE', BESTMOVE);
 				if ( move ) {
@@ -123,6 +78,18 @@ const App = () => {
 				}
 			}
 			performAIMove();
+		}
+		else if (isAI && !stopAI && gameState.currentTurn === 'WHITE') {
+			// const performAIMove = async () => {
+			// 	await delay();
+			// 	const BESTMOVE = AI.getNextBestMove(gameState, 6, false);
+			// 	const { move } = BESTMOVE;
+			// 	console.log('BESTMOVE', BESTMOVE);
+			// 	if ( move ) {
+			// 		applyMove( move.from, move.to );
+			// 	}
+			// }
+			// performAIMove();
 		}
 	}, [gameState]);
 
@@ -163,33 +130,14 @@ const App = () => {
 		return true;
 	};
 
+	// UX function to apply move (from -> to) on current board
 	const applyMove = (from, to) => {
 		setStopAI(false);
-        setGameState(prevState => {
-            const newState = JSON.parse(JSON.stringify(prevState));
-            const movedChecker = newState.checkers[from];
-            delete newState.checkers[from];
-            newState.checkers[to] = movedChecker;
-
-            // Check for upgrades
-			if (gameBoard.homeBases.white.includes(to) && movedChecker.color === 'BLACK') {
-				movedChecker.isUpgraded = true;
-			} else if (gameBoard.homeBases.black.includes(to) && movedChecker.color === 'WHITE') {
-				movedChecker.isUpgraded = true;
-			}
-
-			// Turn over adjacent checkers
-			gameBoard.edges.forEach(edge => {
-				if (edge.includes(to)) {
-					const adjacentVertex = edge.find(v => v !== to);
-					if (newState.checkers[adjacentVertex] && newState.checkers[adjacentVertex].color !== movedChecker.color) {
-						newState.checkers[adjacentVertex].color = movedChecker.color;
-					}
-				}
-			});
+        setGameState(prevState => { 
+            const newBoardState = applyMoveToBoard(prevState, from, to);
 
             const nextState = {
-                ...newState,
+                ...newBoardState,
                 currentTurn: prevState.currentTurn === 'WHITE' ? 'BLACK' : 'WHITE'
             };
 
@@ -199,7 +147,7 @@ const App = () => {
             setMoveHistory(newMoveHistory);
             setCurrentMoveIndex(currentMoveIndex + 1);
 			
-			if (isGameOver(nextState)) {
+			if (AI.isGameOver(nextState)) {
 				alert(`Game Over! ${prevState.currentTurn} wins!`);
 			}
 
@@ -230,7 +178,6 @@ const App = () => {
     const renderMoveHistory = () => {
         return (
             <div style={{ maxHeight: '200px', overflowY: 'auto', marginTop: '20px' }}>
-                <h3>Move History</h3>
                 <ul className='move-history-list' style={{ listStyleType: 'none', padding: 0 }}>
                     {moveHistory.slice().reverse().map((move, index) => (
                         <li className='move-history-item' key={index} style={{ marginBottom: '5px' }}>
@@ -250,37 +197,6 @@ const App = () => {
         );
     };
 
-	const isGameOver = (gameState) => {
-		// The game is over if all pieces are of the same color
-		const colors = new Set(Object.values(gameState.checkers).map(checker => checker.color));
-		return colors.size === 1;
-	  };
-	  
-	  const evaluateBoard = (gameState) => {
-		// Count the difference between white and black pieces
-		let score = 0;
-		for (const checker of Object.values(gameState.checkers)) {
-		  score += checker.color === 'WHITE' ? 1 : -1;
-		  if (checker.isUpgraded) {
-			score += checker.color === 'WHITE' ? 2.5 : -2.5;
-		  }
-		}
-		return score;
-	  };
-	  
-	  const getAllPossibleMoves = (gameState, player) => {
-		const possibleMoves = [];
-		for (const [from, checker] of Object.entries(gameState.checkers)) {
-		  if (checker.color === player) {
-			for (const to of gameBoard.vertices) {
-			  if (isValidMove(from, to)) {
-				possibleMoves.push({ from, to });
-			  }
-			}
-		  }
-		}
-		return possibleMoves;
-	  };
 	  
 	  const applyMoveToNewState = (gameState, from, to) => {
 		const newState = JSON.parse(JSON.stringify(gameState));
@@ -300,7 +216,15 @@ const App = () => {
 		  if (edge.includes(to)) {
 			const adjacentVertex = edge.find(v => v !== to);
 			if (newState.checkers[adjacentVertex] && newState.checkers[adjacentVertex].color !== movedChecker.color) {
-			  newState.checkers[adjacentVertex].color = movedChecker.color;
+				// turn over destination checker
+			  	newState.checkers[adjacentVertex].color = movedChecker.color;
+
+				// Check for upgrades
+				if (gameBoard.homeBases.white.includes(adjacentVertex) && movedChecker.color === 'BLACK') {
+					newState.checkers[adjacentVertex].isUpgraded = true;
+				} else if (gameBoard.homeBases.black.includes(adjacentVertex) && movedChecker.color === 'WHITE') {
+					newState.checkers[adjacentVertex].isUpgraded = true;
+				}
 			}
 		  }
 		});
@@ -308,58 +232,62 @@ const App = () => {
 		return newState;
 	  };
 
-    const getNextBestMove = (currentGameState, depth = 8, isMaximizingPlayer = true, alpha = -Infinity, beta = Infinity) => {
-		const currentPlayer = isMaximizingPlayer ? 'BLACK' : 'WHITE';
-	  
-		// Base case: if we've reached the maximum depth or the game is over
-		if (depth === 0 || isGameOver(currentGameState)) {
-		  return { score: evaluateBoard(currentGameState), move: null };
-		}
-	  
-		let bestMove = null;
-		let bestScore = isMaximizingPlayer ? -Infinity : Infinity;
-	  
-		// Get all possible moves for the current player
-		const possibleMoves = getAllPossibleMoves(currentGameState, currentPlayer);
-	  
-		for (const move of possibleMoves) {
-		  // Create a new game state by applying the move
-		  const newGameState = applyMoveToNewState(currentGameState, move.from, move.to);
-	  
-		  // Recursively call getNextBestMove for the opponent
-		  const { score } = getNextBestMove(newGameState, depth - 1, !isMaximizingPlayer, alpha, beta);
-	  
-		  // Update best score and move
-		  if (isMaximizingPlayer) {
-			if (score > bestScore) {
-			  bestScore = score;
-			  bestMove = move;
-			}
-			alpha = Math.max(alpha, bestScore);
-		  } else {
-			if (score < bestScore) {
-			  bestScore = score;
-			  bestMove = move;
-			}
-			beta = Math.min(beta, bestScore);
-		  }
-	  
-		  // Alpha-beta pruning
-		  if (beta <= alpha) {
-			break;
-		  }
-		}
-	  
-		return { score: bestScore, move: bestMove };
-	};
+	
 
 	return (
-		<div>
+		<div
+		style={{
+			display: 'flex',
+			flexDirection: 'row',
+			justifyContent: 'center',
+			alignItems: 'center',
+			width:'100%',
+		}}>
 			<div className="credits">
 				By Adam Blvck (<a href="https://adamblvck.com">adamblvck.com</a>)
 			</div>
+			<Sidebar
+				// startNewGame={() => setGameState(initializeGameState())}
+				// toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+			>
+				<button onClick={clearHistory} style={{marginTop:65}}>
+					New Game
+				</button>
+
+				<button onClick={() => setIsAI(!isAI)}>
+					{isAI ? 'Disable AI' : 'Enable AI'}
+				</button>
+
+				{/* <button>
+					{AI.AI.evaluateBoard(gameState)}
+				</button> */}
+
+				<div
+					style={{
+						backgroundColor: gameState.currentTurn=='BLACK'? 'black' : 'white',
+						color: gameState.currentTurn=='BLACK'? 'white' : 'black',
+						padding: '10px',
+						margin: '5px',
+						border: '1px solid black',
+						borderRadius: '15px'
+					}}
+				>
+					Current Turn <br/> { gameState.currentTurn}
+				</div>
+
+				<h3>Move History</h3>
+
+				<div style={{display:'flex', flexDirection:'row'}}>
+					<button onClick={undoMove} disabled={currentMoveIndex <= 0}>Back</button>
+					<button onClick={redoMove} disabled={currentMoveIndex >= moveHistory.length - 1}>Forward</button>
+					{ currentMoveIndex !== moveHistory.length - 1 ? <button onClick={moveToCurrentState} disabled={currentMoveIndex === moveHistory.length - 1}>Move to Current</button> : undefined }
+				</div>
+				{renderMoveHistory()}
+				
+			</Sidebar>
+
 			<div className={`App ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
-				<div className={'App-header'} style={{margin: '20px', fontSize:15}}>
+				<div className={'App-header'} style={{}}>
 					Tarati - A Board Game by George Spencer Brown
 				</div>
 				<Board
@@ -368,47 +296,13 @@ const App = () => {
 					vWidth={vWidth}
 					gameState={gameState}
 					gameBoard={gameBoard}
-                    isValidMove={isValidMove}
+                    isValidMove={AI.isValidMove}
                     applyMove={applyMove}
+					ApplyMoveAI={AI.ApplyMoveAI}
 				/>
-				
-				<Sidebar
-					// startNewGame={() => setGameState(initializeGameState())}
-					// toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-				>
-					<button onClick={clearHistory}>
-						New Game
-					</button>
 
-					<button onClick={() => setIsAI(!isAI)}>
-						{isAI ? 'Disable AI' : 'Enable AI'}
-					</button>
-
-					{/* <button>
-						{evaluateBoard(gameState)}
-					</button> */}
-
-					<div
-						style={{
-							backgroundColor: gameState.currentTurn=='BLACK'? 'black' : 'white',
-							color: gameState.currentTurn=='BLACK'? 'white' : 'black',
-							padding: '10px',
-							margin: '5px',
-							border: '1px solid black',
-							borderRadius: '15px'
-						}}
-					>
-						Current Turn <br/> { gameState.currentTurn}
-					</div>
-
-					<div style={{display:'flex', flexDirection:'row'}}>
-                        <button onClick={undoMove} disabled={currentMoveIndex <= 0}>Back</button>
-                        <button onClick={redoMove} disabled={currentMoveIndex >= moveHistory.length - 1}>Forward</button>
-                        { currentMoveIndex !== moveHistory.length - 1 ? <button onClick={moveToCurrentState} disabled={currentMoveIndex === moveHistory.length - 1}>Move to Current</button> : undefined }
-                    </div>
-                    {renderMoveHistory()}
-					
-				</Sidebar>
+				{/* viewWidth -> vWidth */}
+				<TurnIndicator currentTurn={gameState.currentTurn} vWidth={boardSize/2 + boardSize/4}/>
 			</div>
 		</div>
 	);
