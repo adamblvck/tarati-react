@@ -1,12 +1,15 @@
 {
   "files": {
-    "main.css": "/tarati-game/static/css/main.60a4a894.css",
-    "main.js": "/tarati-game/static/js/main.6ddfde2d.js",
-    "static/js/206.3854cd6e.chunk.js": "/tarati-game/static/js/206.3854cd6e.chunk.js",
-    "index.html": "/tarati-game/index.html"
+    "main.css": "/tarati-game/static/css/main.8b014553.css",
+    "main.js": "/tarati-game/static/js/main.6f3ab907.js",
+    "static/js/453.88059c2e.chunk.js": "/tarati-game/static/js/453.88059c2e.chunk.js",
+    "index.html": "/tarati-game/index.html",
+    "main.8b014553.css.map": "/tarati-game/static/css/main.8b014553.css.map",
+    "main.6f3ab907.js.map": "/tarati-game/static/js/main.6f3ab907.js.map",
+    "453.88059c2e.chunk.js.map": "/tarati-game/static/js/453.88059c2e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.60a4a894.css",
-    "static/js/main.6ddfde2d.js"
+    "static/css/main.8b014553.css",
+    "static/js/main.6f3ab907.js"
   ]
 }
