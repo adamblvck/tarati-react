@@ -32,7 +32,14 @@ const initializeGameState = () => {
 };
 
 // async function for delay 1 second
-const delay = () => new Promise(resolve => setTimeout(resolve, 1000));
+const delay = () => new Promise(resolve => setTimeout(resolve, 100));
+
+const difficultyToDepth = {
+	'Easy': 3,
+	'Medium': 6,
+	'Hard': 9,
+	'Champion': 12
+  };
 
 const App = () => {
 
@@ -42,6 +49,8 @@ const App = () => {
     const [currentMoveIndex, setCurrentMoveIndex] = useState(-1);
 	const [isAI, setIsAI] = useState(true); // AI on by default
 	const [stopAI, setStopAI] = useState(false); // AI on by default
+
+	const [difficulty, setDifficulty] = useState('Medium');
 
 	const clearHistory = () => {
 		setMoveHistory([]); // reset history
@@ -66,69 +75,35 @@ const App = () => {
 	}, [gameState]);
 
 	useEffect(() => {
+
+		console.log("Applying the miracle", gameState);
+		
 		// Perform AI MOVE
-		if (isAI && !stopAI && gameState.currentTurn === 'BLACK') {
+		if (isAI && !stopAI && gameState.currentTurn == 'BLACK') {
 			const performAIMove = async () => {
 				await delay();
-				const BESTMOVE = AI.getNextBestMove(gameState, 6, true);
+				const BESTMOVE = AI.getNextBestMove(gameState, difficultyToDepth[difficulty], true);
 				const { move } = BESTMOVE;
-				console.log('BESTMOVE', BESTMOVE);
+				console.log('BESTMOVE BLACK', BESTMOVE);
 				if ( move ) {
 					applyMove( move.from, move.to );
 				}
 			}
 			performAIMove();
 		}
-		else if (isAI && !stopAI && gameState.currentTurn === 'WHITE') {
+		else if (isAI && !stopAI && gameState.currentTurn == 'WHITE') {
 			// const performAIMove = async () => {
-			// 	await delay();
-			// 	const BESTMOVE = AI.getNextBestMove(gameState, 6, false);
+			// 	const BESTMOVE = AI.getNextBestMove(gameState, 3, false);
 			// 	const { move } = BESTMOVE;
-			// 	console.log('BESTMOVE', BESTMOVE);
+			// 	console.log('BESTMOVE WHITE', BESTMOVE);
 			// 	if ( move ) {
 			// 		applyMove( move.from, move.to );
 			// 	}
+			// 	await delay();
 			// }
 			// performAIMove();
 		}
 	}, [gameState]);
-
-	const isValidMove = (from, to) => {
-
-		// same square is not a move
-		if (from == to ) return false;
-
-		// Implement move validation logic
-		const isValidEdge = gameBoard.edges.some(edge => 
-			(edge[0] === from && edge[1] === to) || (edge[1] === from && edge[0] === to)
-		);
-		// check if move is single step
-		if (!isValidEdge) return false;
-
-		// Check if the from vertex has a checker
-		const checker = gameState.checkers[from];
-		if (!checker) return false;
-
-		// Check if the destination is empty (can't stack)
-		if (gameState.checkers[to]) return false;
-
-		// if not current turn - not allowed
-		if (checker.color !== gameState.currentTurn) return false;
-
-		// Check if the move is forward (for non-upgraded checkers)
-		if (!checker.isUpgraded) {
-			const upwardForWhite = checker.color === 'WHITE' ? 1 : -1;
-			const fromY = Data.getPosition(from, boardSize, vWidth ).y;
-			const toY = Data.getPosition(to, boardSize, vWidth ).y;
-            if (checker.color === 'WHITE' && (fromY - toY > 10)) return true;
-            else
-                if (checker.color === 'BLACK' && (toY - fromY > 10)) return true;
-            else
-                return false;
-		}
-
-		return true;
-	};
 
 	// UX function to apply move (from -> to) on current board
 	const applyMove = (from, to) => {
@@ -140,6 +115,8 @@ const App = () => {
                 ...newBoardState,
                 currentTurn: prevState.currentTurn === 'WHITE' ? 'BLACK' : 'WHITE'
             };
+
+			console.log(prevState.currentTurn, "to", nextState.currentTurn, "Moving", from, to);
 
             // Update move history
             const newMoveHistory = moveHistory.slice(0, currentMoveIndex + 1);
@@ -197,43 +174,6 @@ const App = () => {
         );
     };
 
-	  
-	  const applyMoveToNewState = (gameState, from, to) => {
-		const newState = JSON.parse(JSON.stringify(gameState));
-		const movedChecker = newState.checkers[from];
-		delete newState.checkers[from];
-		newState.checkers[to] = movedChecker;
-	  
-		// Check for upgrades
-		if (gameBoard.homeBases.white.includes(to) && movedChecker.color === 'BLACK') {
-		  movedChecker.isUpgraded = true;
-		} else if (gameBoard.homeBases.black.includes(to) && movedChecker.color === 'WHITE') {
-		  movedChecker.isUpgraded = true;
-		}
-	  
-		// Turn over adjacent checkers
-		gameBoard.edges.forEach(edge => {
-		  if (edge.includes(to)) {
-			const adjacentVertex = edge.find(v => v !== to);
-			if (newState.checkers[adjacentVertex] && newState.checkers[adjacentVertex].color !== movedChecker.color) {
-				// turn over destination checker
-			  	newState.checkers[adjacentVertex].color = movedChecker.color;
-
-				// Check for upgrades
-				if (gameBoard.homeBases.white.includes(adjacentVertex) && movedChecker.color === 'BLACK') {
-					newState.checkers[adjacentVertex].isUpgraded = true;
-				} else if (gameBoard.homeBases.black.includes(adjacentVertex) && movedChecker.color === 'WHITE') {
-					newState.checkers[adjacentVertex].isUpgraded = true;
-				}
-			}
-		  }
-		});
-	  
-		return newState;
-	  };
-
-	
-
 	return (
 		<div
 		style={{
@@ -250,19 +190,29 @@ const App = () => {
 				// startNewGame={() => setGameState(initializeGameState())}
 				// toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
 			>
-				<button onClick={clearHistory} style={{marginTop:65}}>
+				<button className="form" onClick={clearHistory} style={{marginTop:65}}>
 					New Game
 				</button>
 
-				<button onClick={() => setIsAI(!isAI)}>
+				<button className="form" onClick={() => setIsAI(!isAI)}>
 					{isAI ? 'Disable AI' : 'Enable AI'}
 				</button>
 
-				{/* <button>
-					{AI.AI.evaluateBoard(gameState)}
-				</button> */}
+				<div className="form" style={{ marginTop: '20px' }}>
+					<label htmlFor="difficulty">AI Difficulty</label>
+					<select
+						id="difficulty"
+						value={difficulty}
+						onChange={(e) => setDifficulty(e.target.value)}
+					>
+						<option value="Easy">Easy</option>
+						<option value="Medium">Medium</option>
+						<option value="Hard">Hard</option>
+						<option value="Champion">Champion</option>
+					</select>
+				</div>
 
-				<div
+				<div className="form"
 					style={{
 						backgroundColor: gameState.currentTurn=='BLACK'? 'black' : 'white',
 						color: gameState.currentTurn=='BLACK'? 'white' : 'black',
@@ -300,9 +250,6 @@ const App = () => {
                     applyMove={applyMove}
 					ApplyMoveAI={AI.ApplyMoveAI}
 				/>
-
-				{/* viewWidth -> vWidth */}
-				<TurnIndicator currentTurn={gameState.currentTurn} vWidth={boardSize/2 + boardSize/4}/>
 			</div>
 		</div>
 	);

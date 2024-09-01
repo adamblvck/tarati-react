@@ -7,8 +7,16 @@ export const useBoardSize = (boardRef) => {
 
     const updateSize = useCallback(() => {
         if (boardRef.current) {
-            const size = Math.min(boardRef.current.clientWidth, boardRef.current.clientHeight);
-            setBoardSize(size);
+
+            if (boardRef.current.clientWidth > boardRef.current.clientHeight) {
+                const size = Math.min(boardRef.current.clientWidth, boardRef.current.clientHeight);
+                setBoardSize(size);    
+            } else {
+                const size = Math.max(boardRef.current.clientWidth, boardRef.current.clientHeight);
+                setBoardSize(size);    
+            }
+
+            
         }
     }, [boardRef]);
 

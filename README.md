@@ -20,5 +20,6 @@ The last command will make the app available on `localhost:3000`.
 
 ```
 GENERATE_SOURCEMAP=false npm run build
+npm run deploy
 ```
 

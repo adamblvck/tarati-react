@@ -59,8 +59,13 @@ export const applyMoveToBoard = (prevState, from, to) => {
 	gameBoard.edges.forEach(edge => {
 			if (edge.includes(to)) {
 					const adjacentVertex = edge.find(v => v !== to);
-					if (newState.checkers[adjacentVertex] && newState.checkers[adjacentVertex].color !== movedChecker.color) {
-							newState.checkers[adjacentVertex].color = movedChecker.color;
+
+					// console.log("BEST MOVE -->", movedChecker)
+
+					if (newState.checkers[adjacentVertex] && newState.checkers[adjacentVertex].color !== movedChecker?.color) {
+							newState.checkers[adjacentVertex].color = movedChecker?.color;
+
+							
 
 							// Check for upgrades
 							if (gameBoard.homeBases.white.includes(adjacentVertex) && newState.checkers[adjacentVertex].color === 'BLACK') {

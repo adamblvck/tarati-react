@@ -1,6 +1,6 @@
-const getPosition = (vertexId, svgSize, vWidth) => {
-    const centerX = svgSize / 2;
-    const centerY = svgSize / 2;
+const getPosition = (vertexId, {w:width, h:height}, vWidth) => {
+    const centerX = width / 2;
+    const centerY = height / 2;
 
     if (vertexId === 'A1') {
         return { x: centerX, y: centerY };
@@ -28,11 +28,11 @@ const getPosition = (vertexId, svgSize, vWidth) => {
             const left = position == 1 || position == 4  ? 1 : -1;
 
             return {
-                x: centerY + vWidth/2/left,
-                y: centerX + vWidth*3*down
+                x: centerX + vWidth/2/left,
+                y: centerY + vWidth*3*down
             };
         default:
-            return { x: 0, y: 0 };
+            return { x: centerX, y: centerY };
     }
 };
 

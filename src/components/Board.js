@@ -5,12 +5,12 @@ import { CSS } from '@dnd-kit/utilities';
 import Checker from './Checker';
 import './Board.css';
 import Data from '../helpers/position';
-
+import TurnIndicator from './TurnIndicator';
 const HIGHLIGHT_RADIUS = 30; // Radius to highlight potential drop locations
 
 // const getPosition = (vertexId, boardSize, vWidth) => {}
 
-const Vertex = ({ vertexId, checker, position, canDrop }, ref) => {
+const Vertex = ({ vertexId, checker, position, canDrop, vWidth}, ref) => {
     const { isOver, setNodeRef } = useDroppable({
         id: vertexId,
     });
@@ -29,15 +29,15 @@ const Vertex = ({ vertexId, checker, position, canDrop }, ref) => {
 				scale: 1
 			}}	
 		>
-			<circle r="5" fill={style.color ?? "#888"}  cx={position.x} cy={position.y} />
+			<circle r={vWidth/12} fill={style.color ?? "#888"}  cx={position.x} cy={position.y} />
 			
-			<text dominantBaseline="middle" paintOrder="stroke" strokeLineJoin="round" strokeWidth={5} stroke={'#ffffff'} x={position.x+15} y={position.y+15}>{vertexId}</text>
+			<text fontSize={vWidth/6} dominantBaseline="middle" paintOrder="stroke" strokeLineJoin="round" strokeWidth={5} stroke={'#ffffff'} x={position.x+vWidth/6} y={position.y+vWidth/6}>{vertexId}</text>
 		</g>
         
     );
 };
 
-const DraggableChecker = ({ id, color, isUpgraded, position }) => {
+const DraggableChecker = ({ id, color, isUpgraded, position, vWidth }) => {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: id,
     });
@@ -60,12 +60,12 @@ const DraggableChecker = ({ id, color, isUpgraded, position }) => {
             <circle
                 cx={position.x}
                 cy={position.y}
-                r="15"
+                r={vWidth/6}
                 fill={color}
                 stroke="#222"
             />
 			{isUpgraded ?
-				<circle cx={position.x} cy={position.y} r="10" fill={color=='WHITE'?'BLACK':'WHITE'} 
+				<circle cx={position.x} cy={position.y} r={vWidth/9} fill={color=='WHITE'?'BLACK':'WHITE'} 
 			/> : undefined }
         </g>
     );
@@ -99,18 +99,21 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 		}
 	};
 
+	const aspect=1.2;
+
     return (
         <div ref={ref} className="board-container">
 			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
 				<svg
-					viewBox={`0 0 ${boardSize} ${boardSize}`}
+					viewBox={`0 0 ${boardSize/aspect} ${boardSize}`}
 					width="100%"
-					height="100%"
+					height="auto"
+					className='board-svg'
 				>
 					{/* Draw Edges */}
 					{gameBoard.edges.map(([from, to], index) => {
-						const fromPos = Data.getPosition(from, boardSize, vWidth);
-						const toPos = Data.getPosition(to, boardSize, vWidth);
+						const fromPos = Data.getPosition(from, {w:boardSize/aspect,h:boardSize}, vWidth);
+						const toPos = Data.getPosition(to, {w:boardSize/aspect,h:boardSize}, vWidth);
 						return (
 							<line
 								key={`edge-${index}`}
@@ -130,8 +133,9 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 							key={vertexId}
 							vertexId={vertexId}
 							checker={gameState.checkers[vertexId]}
-							position={Data.getPosition(vertexId, boardSize, vWidth)}
+							position={Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth)}
 							canDrop={false} //draggedChecker && isValidMove(draggedChecker, vertexId)}
+							vWidth={vWidth}
 						/>
 					))}
 
@@ -142,11 +146,14 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 							id={id}
 							color={checker.color}
 							isUpgraded={checker.isUpgraded}
-							position={Data.getPosition(id, boardSize, vWidth)}
+							position={Data.getPosition(id, {w:boardSize/aspect,h:boardSize}, vWidth)}
+							vWidth={vWidth}
 						/>
 					))}
 				</svg>
 			</DndContext>
+			{/* viewWidth -> vWidth */}
+			<TurnIndicator height={200} currentTurn={gameState.currentTurn} vWidth={boardSize/2}/>
         </div>
     );
 });
