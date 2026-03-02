@@ -1,4 +1,4 @@
-import react, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const PADDING = 20; // Assuming PADDING is defined elsewhere
 

@@ -4,7 +4,7 @@ import useTurnIndicator from '../hooks/useTurnIndicator';
 import './TurnIndicator.css';
 
 const TurnIndicator = ({ currentTurn, vWidth, height=100 }) => {
-	const { isAnimating, animationProgress } = useTurnIndicator(currentTurn);
+	const { isAnimating } = useTurnIndicator(currentTurn);
 	const indicatorRef = useRef(null);
 
 	const containerStyle = {
@@ -46,7 +46,7 @@ const TurnIndicator = ({ currentTurn, vWidth, height=100 }) => {
         slider.style.transform = `translateY(${currentTurn === 'BLACK' ? '0' : `-${height}px`})`;
       }, 50);
     }
-  }, [currentTurn, isAnimating]);
+  }, [currentTurn, isAnimating, height]);
 
   return (
     <div className='turn-indicator-container' ref={indicatorRef} style={containerStyle}>

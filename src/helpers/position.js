@@ -25,7 +25,7 @@ const getPosition = (vertexId, {w:width, h:height}, vWidth) => {
             };
         case 'D':
             const down = position > 2 ? -1 : 1;
-            const left = position == 1 || position == 4  ? 1 : -1;
+            const left = position === 1 || position === 4  ? 1 : -1;
 
             return {
                 x: centerX + vWidth/2/left,
@@ -36,4 +36,5 @@ const getPosition = (vertexId, {w:width, h:height}, vWidth) => {
     }
 };
 
-export default { getPosition };
+const Data = { getPosition };
+export default Data;

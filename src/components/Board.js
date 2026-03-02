@@ -1,12 +1,10 @@
 // components/Board.js
-import React, { useRef, useState, useEffect, forwardRef } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { DndContext, useDraggable, useDroppable, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import Checker from './Checker';
 import './Board.css';
 import Data from '../helpers/position';
 import TurnIndicator from './TurnIndicator';
-const HIGHLIGHT_RADIUS = 30; // Radius to highlight potential drop locations
 
 // const getPosition = (vertexId, boardSize, vWidth) => {}
 
@@ -65,7 +63,7 @@ const DraggableChecker = ({ id, color, isUpgraded, position, vWidth }) => {
                 stroke="#222"
             />
 			{isUpgraded ?
-				<circle cx={position.x} cy={position.y} r={vWidth/9} fill={color=='WHITE'?'BLACK':'WHITE'} 
+				<circle cx={position.x} cy={position.y} r={vWidth/9} fill={color==='WHITE'?'BLACK':'WHITE'} 
 			/> : undefined }
         </g>
     );
@@ -84,7 +82,9 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
     const mouseSensor = useSensor(MouseSensor);
     const sensors = useSensors(mouseSensor, touchSensor);
 
+    // eslint-disable-next-line no-unused-vars
     const [draggedChecker, setDraggedChecker] = useState(null);
+    // eslint-disable-next-line no-unused-vars
     const [highlightedVertices, setHighlightedVertices] = useState([]);
 
 	const handleDragEnd = (event) => {
