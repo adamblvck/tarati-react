@@ -28,7 +28,7 @@ const Sidebar = ({ children, show_help = true, helpContent }) => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', }}>
+    <div style={{ marginTop: '40px', position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', }}>
       
       <button
         onClick={toggleSidebar}
