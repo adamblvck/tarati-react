@@ -1,0 +1,343 @@
+/* ───── Landing Page ───── */
+
+.landing {
+  font-family: "Archivo", sans-serif;
+  color: #222;
+  overflow-x: hidden;
+}
+
+/* ── Hero ── */
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  min-height: calc(100vh - 64px);
+  padding: 60px 40px;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(200,200,200,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 30%, rgba(150,150,150,0.06) 0%, transparent 50%),
+    #fff;
+}
+
+.hero-text {
+  max-width: 500px;
+}
+
+.hero-subtitle {
+  font-family: "Archivo", sans-serif;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #999;
+  margin: 0 0 8px;
+}
+
+.hero-title {
+  font-family: "Playfair Display", serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 4px;
+  color: #111;
+}
+
+.hero-game-name {
+  font-family: "Playfair Display", serif;
+  font-size: 4.5rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  margin: 0 0 24px;
+  color: #111;
+  line-height: 1;
+}
+
+.hero-description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #555;
+  margin: 0 0 32px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 14px 36px;
+  font-family: "Archivo", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #111;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-primary:hover {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-block;
+  padding: 14px 36px;
+  font-family: "Archivo", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #111;
+  background: transparent;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+
+.btn-secondary:hover {
+  border-color: #888;
+  background: #f9f9f9;
+  transform: translateY(-1px);
+}
+
+.hero-board {
+  flex-shrink: 0;
+}
+
+/* ── Sections ── */
+
+.section-heading {
+  font-family: "Playfair Display", serif;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #111;
+}
+
+/* About */
+
+.about-section {
+  padding: 80px 40px;
+  display: flex;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.about-content {
+  max-width: 640px;
+}
+
+.about-content p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #444;
+  margin: 0 0 16px;
+}
+
+/* Symbols */
+
+.symbols-section {
+  padding: 80px 40px;
+  text-align: center;
+  background: #fff;
+}
+
+.symbols-intro {
+  max-width: 560px;
+  margin: 0 auto 48px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #555;
+}
+
+.symbols-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.symbol-card {
+  padding: 32px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  background: #fafafa;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.symbol-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+.symbol-number {
+  font-family: "Playfair Display", serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #111;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.symbol-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+
+.symbol-desc {
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Laws of Form */
+
+.lof-section {
+  padding: 80px 40px;
+  display: flex;
+  justify-content: center;
+  background: #111;
+  color: #ddd;
+}
+
+.lof-content {
+  max-width: 640px;
+}
+
+.lof-content .section-heading {
+  color: #fff;
+}
+
+.lof-content p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #bbb;
+  margin: 0 0 24px;
+}
+
+.lof-content strong {
+  color: #fff;
+}
+
+.lof-content em {
+  color: #ccc;
+}
+
+.lof-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.lof-links a {
+  font-size: 0.9rem;
+  color: #8ab4f8;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.lof-links a:hover {
+  border-bottom-color: #8ab4f8;
+}
+
+/* CTA */
+
+.cta-section {
+  padding: 80px 40px;
+  text-align: center;
+  background: #fafafa;
+}
+
+.cta-heading {
+  font-family: "Playfair Display", serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #111;
+}
+
+.cta-section p {
+  font-size: 1.05rem;
+  color: #666;
+  margin: 0 0 32px;
+}
+
+.cta-section .hero-actions {
+  justify-content: center;
+}
+
+/* Footer */
+
+.landing-footer {
+  padding: 32px 40px;
+  text-align: center;
+  border-top: 1px solid #e8e8e8;
+  background: #fff;
+}
+
+.landing-footer p {
+  font-family: "Playfair Display", serif;
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0;
+}
+
+.landing-footer a {
+  color: #666;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.landing-footer a:hover {
+  border-bottom-color: #666;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    gap: 48px;
+    text-align: center;
+    padding: 48px 24px;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .symbols-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .hero-game-name {
+    font-size: 3rem;
+  }
+
+  .symbols-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .section-heading {
+    font-size: 1.6rem;
+  }
+}

@@ -1,0 +1,232 @@
+/* ───── Rules Page ───── */
+
+.rules-page {
+  font-family: "Archivo", sans-serif;
+  color: #222;
+}
+
+/* ── Hero ── */
+
+.rules-hero {
+  padding: 64px 40px 40px;
+  text-align: center;
+  background: #fff;
+}
+
+.rules-title {
+  font-family: "Playfair Display", serif;
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: #111;
+}
+
+.rules-intro {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Table of contents ── */
+
+.rules-toc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 24px 32px;
+  background: #fff;
+}
+
+.rules-toc a {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #888;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.rules-toc a:hover {
+  color: #111;
+  background: #f0f0f0;
+}
+
+.toc-dot {
+  color: #ccc;
+  font-size: 0.7rem;
+}
+
+/* ── Rule sections ── */
+
+.rule-section {
+  padding: 72px 40px;
+  background: #fff;
+}
+
+.rule-section.alt-bg {
+  background: #fafafa;
+}
+
+.rule-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 64px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.rule-content.reverse {
+  flex-direction: row-reverse;
+}
+
+.rule-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-board {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rule-heading {
+  font-family: "Playfair Display", serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #111;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.rule-number {
+  font-family: "Playfair Display", serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #ddd;
+  line-height: 1;
+}
+
+.rule-text p {
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: #444;
+  margin: 0 0 14px;
+}
+
+.rule-text strong {
+  color: #222;
+}
+
+.rule-note {
+  font-size: 0.92rem !important;
+  color: #888 !important;
+  font-style: italic;
+  border-left: 3px solid #e0e0e0;
+  padding-left: 14px;
+  margin-top: 8px !important;
+}
+
+.rule-list {
+  padding-left: 20px;
+  margin: 0 0 14px;
+}
+
+.rule-list li {
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+/* ── Board pair (before/after) ── */
+
+.board-pair {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.arrow-between {
+  font-size: 2rem;
+  color: #bbb;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+/* ── Rules CTA ── */
+
+.rules-cta {
+  padding: 64px 40px;
+  text-align: center;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+
+.rules-cta h2 {
+  font-family: "Playfair Display", serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #111;
+}
+
+/* Reusing .btn-primary from LandingPage.css */
+
+/* ── Responsive ── */
+
+@media (max-width: 800px) {
+  .rule-content,
+  .rule-content.reverse {
+    flex-direction: column;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .rule-text {
+    text-align: center;
+  }
+
+  .rule-heading {
+    justify-content: center;
+  }
+
+  .rule-note {
+    text-align: left;
+  }
+
+  .board-pair {
+    flex-direction: column;
+  }
+
+  .arrow-between {
+    transform: rotate(90deg);
+    font-size: 1.5rem;
+  }
+
+  .rules-title {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .rule-section {
+    padding: 48px 20px;
+  }
+
+  .rule-heading {
+    font-size: 1.4rem;
+  }
+
+  .rule-number {
+    font-size: 2rem;
+  }
+}
