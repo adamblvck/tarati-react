@@ -28,17 +28,82 @@ The game has an interesting structure, with overlaps to the ideas of concept str
 
 ## AI Algorithm
 
-The Tarati game implements a minimax algorithm with alpha-beta pruning for its AI opponent. Key features include:
+Tarati uses a bounded **minimax + alpha-beta pruning** engine in both:
 
-- Depth-limited search (configurable, default 8 plies) = variable difficulty
-- Position evaluation based on piece count, upgrades, and board control
-- Move ordering for improved pruning efficiency
+- `src/AI.js` (React runtime AI)
+- `strategy/engine/ai.py` (Python simulation AI)
 
-Key concepts developed in AI algorithm:
-- Minimax
-- Alpha-beta pruning
-- Move generation and board evaluation
-- Game state representation
+Main ideas:
+
+- **Depth-limited search** controls strategic horizon per difficulty.
+- **Move ordering** pushes promising lines earlier so alpha-beta can prune more.
+- **Transposition table (TT)** avoids re-solving repeated board states in one search.
+- **Static evaluation** scores:
+  - piece count
+  - upgraded pieces
+  - terminal states with a large winning score (`WINNING_SCORE`).
+
+### Performance improvements (important)
+
+Hard and Champion can branch aggressively, so the engine now supports budgeted search:
+
+- **`maxMs` / `max_ms`**: time budget per AI move.
+- **`maxNodes` / `max_nodes`**: node expansion budget.
+- **`rootProbeNodes` / `root_probe_nodes`**: root round-robin probing budget.
+- **`stochasticTopK` / `stochastic_top_k`**: weighted random pick among top lines for variety.
+
+Root round-robin probing means the AI does not over-invest in a single first move early.  
+It samples each root candidate in slices, then deepens while budget remains. This gives an "anytime" behavior: return the best discovered move even under tight limits.
+
+For the full technical breakdown, see: `strategy/AI_ENGINE.md`
+
+## Simulation Pipeline (`strategy/`)
+
+The `strategy/` folder is the analysis and simulation workspace for AI-vs-AI experiments.
+
+### Notebook flow
+
+- `strategy/01_simulate_games.ipynb`
+  - Generates AI-vs-AI games in parallel.
+  - Writes full game + move history into SQLite (`strategy/data/games.sqlite`).
+  - Supports per-side AI config:
+    - `AI_SEARCH_A`
+    - `AI_SEARCH_B`
+  - These map directly to the engine search options:
+    - `max_ms`, `max_nodes`, `root_probe_nodes`, `stochastic_top_k`.
+- `strategy/02_analyse_games.ipynb`
+  - Reads simulation outputs and computes summary statistics.
+- `strategy/03_opener_statistics.ipynb`
+  - Focuses on opening move behavior and conversion rates.
+
+### Engine modules used by notebooks
+
+- `strategy/engine/runner.py`: importable game runner for multiprocessing-safe execution.
+- `strategy/engine/board.py`: board topology + move application.
+- `strategy/engine/ai.py`: search + evaluation.
+- `strategy/engine/test_engine.py`: validation tests for rules and engine behavior.
+
+### Running simulations locally
+
+1) Install Python dependencies:
+
+```bash
+pip install -r strategy/requirements.txt
+```
+
+2) Open and run:
+
+- `strategy/01_simulate_games.ipynb`
+
+3) Tune before large runs:
+
+- `N_GAMES`, `DEPTH_A`, `DEPTH_B`, `MAX_MOVES`, `NUM_WORKERS`
+- `AI_SEARCH_A` / `AI_SEARCH_B` budgets (`max_ms` is the most important for responsiveness)
+
+4) Analyse:
+
+- run `strategy/02_analyse_games.ipynb`
+- run `strategy/03_opener_statistics.ipynb`
 
 ## Internal Structure
 
@@ -80,10 +145,48 @@ npm start
 
 The last command will make the app available on `localhost:3000`.
 
-## Build Game
+## Build Game to Github Pages
 
-Tarati is deployed for free on GitHub pages. Publish by configuring `gh-pages` correctly, then running:
+Tarati is deployed for free on GitHub pages. Publish by configuring `gh-pages` correctly.
 
+Install gh-pages:
+
+```
+npm install gh-pages --save-dev
+```
+
+Add the following to package.json
+
+```javascript
+"scripts": { // <-- in scripts in package.json
+    "predeploy": "npm run build", // <== add this
+    "deploy": "gh-pages -d build", // <== add this
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+```
+
+Also add the final github url of your repo to the package.json file:
+
+```javascript
+{
+  "name": "tarati-react",
+  "version": "0.1.0",
+  "author": "adamblvck",
+  "homepage": "https://adamblvck.github.io/tarati-react",
+  "private": false,
+  "dependencies": {
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    ...
+  }
+  ,
+  ...
+}
+
+Then run the deploy command:
 ```
 npm run deploy
 ```
