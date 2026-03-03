@@ -20,7 +20,7 @@ const DEFAULTS = {
 	driftSpeed:     [0.08, 0.35],
 	rotationSpeed:  [-0.002, 0.002],
 	color:          '#000',
-	variants:       ['single', 'nested', 'doubleRight', 'doubleUpper'],
+	variants:       ['single', 'nested'],
 	fadeInRatio:    0.2,
 	fadeOutRatio:   0.3,
 	lineWidth:      1.5,
@@ -63,39 +63,9 @@ function drawNested(ctx, s) {
 	ctx.stroke();
 }
 
-function drawDoubleRight(ctx, s) {
-	// Two ┐ marks sharing a continuous horizontal, verticals at two points
-	ctx.beginPath();
-	ctx.moveTo(-s * 0.5, -s * 0.15);
-	ctx.lineTo(-s * 0.05, -s * 0.15);
-	ctx.lineTo(-s * 0.05,  s * 0.4);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.moveTo(-s * 0.05, -s * 0.15);
-	ctx.lineTo( s * 0.4,  -s * 0.15);
-	ctx.lineTo( s * 0.4,   s * 0.4);
-	ctx.stroke();
-}
-
-function drawDoubleUpper(ctx, s) {
-	// Outer ┐ with a second shorter ┐ inset below its horizontal
-	ctx.beginPath();
-	ctx.moveTo(-s * 0.5, -s * 0.4);
-	ctx.lineTo( s * 0.4, -s * 0.4);
-	ctx.lineTo( s * 0.4,  s * 0.5);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.moveTo(-s * 0.3, -s * 0.08);
-	ctx.lineTo( s * 0.12, -s * 0.08);
-	ctx.lineTo( s * 0.12,  s * 0.28);
-	ctx.stroke();
-}
-
 const DRAW_MAP = {
 	single:      drawSingle,
 	nested:      drawNested,
-	// doubleRight: drawDoubleRight,
-	// doubleUpper: drawDoubleUpper,
 };
 
 // ── Particle factory ──
