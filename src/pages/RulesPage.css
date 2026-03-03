@@ -10,7 +10,9 @@
 .rules-hero {
   padding: 64px 40px 40px;
   text-align: center;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .rules-title {
@@ -38,7 +40,9 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 16px 24px 32px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .rules-toc a {
@@ -65,11 +69,15 @@
 
 .rule-section {
   padding: 72px 40px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .rule-section.alt-bg {
-  background: #fafafa;
+  background: rgba(250, 250, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .rule-content {
@@ -167,8 +175,10 @@
 .rules-cta {
   padding: 64px 40px;
   text-align: center;
-  background: #fff;
-  border-top: 1px solid #eee;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(238, 238, 238, 0.6);
 }
 
 .rules-cta h2 {

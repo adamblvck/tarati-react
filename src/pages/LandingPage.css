@@ -16,9 +16,11 @@
   min-height: calc(100vh - 64px);
   padding: 60px 40px;
   background:
-    radial-gradient(circle at 20% 50%, rgba(200,200,200,0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 30%, rgba(150,150,150,0.06) 0%, transparent 50%),
-    #fff;
+    radial-gradient(circle at 20% 50%, rgba(200,200,200,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 30%, rgba(150,150,150,0.04) 0%, transparent 50%),
+    rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .hero-text {
@@ -90,14 +92,16 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   color: #fff;
-  background: #111;
+  background: rgba(17, 17, 17, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 8px;
   text-decoration: none;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
 .btn-primary:hover {
-  background: #333;
+  background: rgba(51, 51, 51, 0.88);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -115,16 +119,18 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   color: #111;
-  background: transparent;
-  border: 1.5px solid #ccc;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(204, 204, 204, 0.7);
   border-radius: 8px;
   text-decoration: none;
   transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
 .btn-secondary:hover {
-  border-color: #888;
-  background: #f9f9f9;
+  border-color: rgba(136, 136, 136, 0.7);
+  background: rgba(249, 249, 249, 0.65);
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
@@ -187,7 +193,9 @@
   padding: 80px 40px;
   display: flex;
   justify-content: center;
-  background: #fafafa;
+  background: rgba(250, 250, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .about-content {
@@ -206,7 +214,9 @@
 .symbols-section {
   padding: 80px 40px;
   text-align: center;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .symbols-intro {
@@ -227,9 +237,11 @@
 
 .symbol-card {
   padding: 32px 16px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid rgba(232, 232, 232, 0.7);
   border-radius: 12px;
-  background: #fafafa;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
   transition: box-shadow 0.2s, transform 0.2s;
 }
 
@@ -267,7 +279,9 @@
   padding: 80px 40px;
   display: flex;
   justify-content: center;
-  background: #111;
+  background: rgba(17, 17, 17, 0.88);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
   color: #ddd;
 }
 
@@ -317,7 +331,9 @@
 .cta-section {
   padding: 80px 40px;
   text-align: center;
-  background: #fafafa;
+  background: rgba(250, 250, 250, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .cta-heading {
@@ -343,8 +359,10 @@
 .landing-footer {
   padding: 32px 40px;
   text-align: center;
-  border-top: 1px solid #e8e8e8;
-  background: #fff;
+  border-top: 1px solid rgba(232, 232, 232, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .landing-footer p {

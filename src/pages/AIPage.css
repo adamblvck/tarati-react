@@ -1,9 +1,11 @@
 .ai-page {
   padding: 36px 24px 56px;
   background:
-    radial-gradient(circle at 0% 0%, rgba(38, 38, 38, 0.04), transparent 36%),
-    radial-gradient(circle at 100% 0%, rgba(89, 71, 173, 0.08), transparent 36%),
-    linear-gradient(180deg, #fbfbfd, #f6f7fb);
+    radial-gradient(circle at 0% 0%, rgba(38, 38, 38, 0.03), transparent 36%),
+    radial-gradient(circle at 100% 0%, rgba(89, 71, 173, 0.05), transparent 36%),
+    rgba(251, 251, 253, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   min-height: calc(100vh - 64px);
   color: #161616;
 }
@@ -40,8 +42,10 @@
 .ai-hero-board {
   display: flex;
   justify-content: center;
-  background: #ffffff;
-  border: 1px solid #e8e8ef;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(232, 232, 239, 0.65);
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 15px 35px rgba(12, 12, 24, 0.06);
@@ -56,8 +60,10 @@
 }
 
 .ai-card {
-  background: #fff;
-  border: 1px solid #e8e8ef;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(232, 232, 239, 0.6);
   border-radius: 16px;
   padding: 18px 18px 14px;
   box-shadow: 0 10px 24px rgba(18, 20, 44, 0.05);
@@ -133,8 +139,10 @@
 .ai-footer {
   max-width: 1200px;
   margin: 26px auto 0;
-  background: #fff;
-  border: 1px solid #e8e8ef;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(232, 232, 239, 0.6);
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 10px 24px rgba(18, 20, 44, 0.05);
@@ -154,10 +162,12 @@
 }
 
 .profile-card {
-  border: 1px solid #ececf3;
+  border: 1px solid rgba(236, 236, 243, 0.6);
   border-radius: 12px;
   padding: 12px;
-  background: #fafbff;
+  background: rgba(250, 251, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .profile-card h3 {
