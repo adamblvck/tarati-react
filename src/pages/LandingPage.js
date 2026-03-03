@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSpring, animated } from 'react-spring';
 import MiniBoard from '../components/MiniBoard';
+import useScrollFadeIn from '../hooks/useScrollFadeIn';
 import './LandingPage.css';
 
 // Initial board state for the hero illustration
@@ -15,37 +17,114 @@ const INITIAL_CHECKERS = {
   'D4': { color: 'BLACK', isUpgraded: false },
 };
 
+// Symbolic data — extracted for cleanliness
+const SYMBOLS = [
+  { number: '4', label: 'Pawns per Player', desc: 'The four elements' },
+  { number: '12', label: 'Circumference', desc: 'Zodiac · Months of the year' },
+  { number: '6', label: 'Boundary', desc: 'Hermetic planetary concepts' },
+  { number: '1', label: 'Absolute Middle', desc: 'The Sun · Tiphareth' },
+];
+
+const SPRING_CONFIG = { tension: 120, friction: 14 };
+
 const LandingPage = () => {
+  // ── Hero entrance (triggers once on mount) ──
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const heroSubtitle = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(20px)',
+    delay: 100,
+    config: SPRING_CONFIG,
+  });
+
+  const heroTitle = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(20px)',
+    delay: 200,
+    config: SPRING_CONFIG,
+  });
+
+  const heroGameName = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(20px)',
+    delay: 300,
+    config: SPRING_CONFIG,
+  });
+
+  const heroDesc = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(20px)',
+    delay: 450,
+    config: SPRING_CONFIG,
+  });
+
+  const heroActions = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(16px)',
+    delay: 600,
+    config: SPRING_CONFIG,
+  });
+
+  const heroBoardSpring = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'scale(1)' : 'scale(0.92)',
+    delay: 350,
+    config: { tension: 80, friction: 18 },
+  });
+
+  // ── Scroll-triggered fade-ins for sections below the hero ──
+  const aboutFade = useScrollFadeIn({ threshold: 0.2 });
+  const symbolsHeadFade = useScrollFadeIn({ threshold: 0.15 });
+  // Staggered card entrances — each hook call is static/unconditional
+  const card0Fade = useScrollFadeIn({ threshold: 0.1, delay: 0 });
+  const card1Fade = useScrollFadeIn({ threshold: 0.1, delay: 100 });
+  const card2Fade = useScrollFadeIn({ threshold: 0.1, delay: 200 });
+  const card3Fade = useScrollFadeIn({ threshold: 0.1, delay: 300 });
+  const cardFades = [card0Fade, card1Fade, card2Fade, card3Fade];
+  const lofFade = useScrollFadeIn({ threshold: 0.2 });
+  const ctaFade = useScrollFadeIn({ threshold: 0.2 });
+
   return (
     <div className="landing">
       {/* ───── Hero ───── */}
       <section className="hero">
         <div className="hero-text">
-          <p className="hero-subtitle">A board game by</p>
-          <h1 className="hero-title">
+          <animated.p style={heroSubtitle} className="hero-subtitle">
+            A board game by
+          </animated.p>
+          <animated.h1 style={heroTitle} className="hero-title">
             George Spencer Brown's
-          </h1>
-          <h2 className="hero-game-name">Tarati</h2>
-          <p className="hero-description">
+          </animated.h1>
+          <animated.h2 style={heroGameName} className="hero-game-name">
+            Tarati
+          </animated.h2>
+          <animated.p style={heroDesc} className="hero-description">
             An ancient-modern game of distinction.<br />
             Two players. Four pawns each. One board of elegant geometry.
-          </p>
-          <div className="hero-actions">
+          </animated.p>
+          <animated.div style={heroActions} className="hero-actions">
             <Link to="/play" className="btn-primary">
               Play Now
             </Link>
             <Link to="/rules" className="btn-secondary">
               Learn the Rules
             </Link>
-          </div>
+          </animated.div>
+          {/* Proof bar — authority signal below the fold line */}
+          <animated.p style={heroActions} className="hero-proof">
+            From the author of <em>Laws of Form</em>
+          </animated.p>
         </div>
-        <div className="hero-board">
+        <animated.div style={heroBoardSpring} className="hero-board">
+          <div className="hero-board-glow" />
           <MiniBoard checkers={INITIAL_CHECKERS} size={340} />
-        </div>
+        </animated.div>
       </section>
 
       {/* ───── About ───── */}
-      <section className="about-section">
+      <animated.section ref={aboutFade.ref} style={aboutFade.style} className="about-section">
         <div className="about-content">
           <h2 className="section-heading">The Game</h2>
           <p>
@@ -60,41 +139,35 @@ const LandingPage = () => {
             across the board's concentric geometry.
           </p>
         </div>
-      </section>
+      </animated.section>
 
       {/* ───── Symbolic Correspondences ───── */}
       <section className="symbols-section">
-        <h2 className="section-heading">Symbolic Structure</h2>
-        <p className="symbols-intro">
-          Tarati's board encodes a rich symbolic architecture&mdash;a microcosm
-          of celestial and alchemical correspondences.
-        </p>
+        <animated.div ref={symbolsHeadFade.ref} style={symbolsHeadFade.style}>
+          <h2 className="section-heading">Symbolic Structure</h2>
+          <p className="symbols-intro">
+            Tarati's board encodes a rich symbolic architecture&mdash;a microcosm
+            of celestial and alchemical correspondences.
+          </p>
+        </animated.div>
         <div className="symbols-grid">
-          <div className="symbol-card">
-            <div className="symbol-number">4</div>
-            <div className="symbol-label">Pawns per Player</div>
-            <div className="symbol-desc">The four elements</div>
-          </div>
-          <div className="symbol-card">
-            <div className="symbol-number">12</div>
-            <div className="symbol-label">Circumference</div>
-            <div className="symbol-desc">Zodiac &middot; Months of the year</div>
-          </div>
-          <div className="symbol-card">
-            <div className="symbol-number">6</div>
-            <div className="symbol-label">Boundary</div>
-            <div className="symbol-desc">Hermetic planetary concepts</div>
-          </div>
-          <div className="symbol-card">
-            <div className="symbol-number">1</div>
-            <div className="symbol-label">Absolute Middle</div>
-            <div className="symbol-desc">The Sun &middot; Tiphareth</div>
-          </div>
+          {SYMBOLS.map((sym, i) => (
+            <animated.div
+              key={sym.number}
+              ref={cardFades[i].ref}
+              style={cardFades[i].style}
+              className="symbol-card"
+            >
+              <div className="symbol-number">{sym.number}</div>
+              <div className="symbol-label">{sym.label}</div>
+              <div className="symbol-desc">{sym.desc}</div>
+            </animated.div>
+          ))}
         </div>
       </section>
 
       {/* ───── Laws of Form ───── */}
-      <section className="lof-section">
+      <animated.section ref={lofFade.ref} style={lofFade.style} className="lof-section">
         <div className="lof-content">
           <h2 className="section-heading">Laws of Form</h2>
           <p>
@@ -115,12 +188,12 @@ const LandingPage = () => {
             </a>
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ───── CTA ───── */}
-      <section className="cta-section">
-        <h2 className="cta-heading">Ready to Play?</h2>
-        <p>Challenge the AI or study the rules first.</p>
+      <animated.section ref={ctaFade.ref} style={ctaFade.style} className="cta-section">
+        <h2 className="cta-heading">Your move.</h2>
+        <p>Challenge the AI or explore the rules.</p>
         <div className="hero-actions">
           <Link to="/play" className="btn-primary">
             Start a Game
@@ -129,7 +202,7 @@ const LandingPage = () => {
             Read the Rules
           </Link>
         </div>
-      </section>
+      </animated.section>
 
       {/* ───── Footer ───── */}
       <footer className="landing-footer">

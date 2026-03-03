@@ -1,0 +1,47 @@
+{
+  "last_updated": "2026-03-03T01:28:29.815851",
+  "total_scheduled": 500000,
+  "total_remaining_at_start": 500000,
+  "games_completed_this_run": 45000,
+  "batches_completed": 6,
+  "batches_total": 66,
+  "elapsed_seconds": 2169.369889833033,
+  "batch_timings": [
+    {
+      "label": "3v3_beginner",
+      "n_games": 18000,
+      "elapsed_s": 216.33508337498643,
+      "tier": "beginner"
+    },
+    {
+      "label": "3v3_beginner",
+      "n_games": 2000,
+      "elapsed_s": 24.580102000036277,
+      "tier": "beginner"
+    },
+    {
+      "label": "3v6_beginner",
+      "n_games": 11250,
+      "elapsed_s": 925.4571117919404,
+      "tier": "beginner"
+    },
+    {
+      "label": "3v6_beginner_flip",
+      "n_games": 11250,
+      "elapsed_s": 808.3834322909825,
+      "tier": "beginner"
+    },
+    {
+      "label": "3v6_beginner",
+      "n_games": 1250,
+      "elapsed_s": 102.98129333404358,
+      "tier": "beginner"
+    },
+    {
+      "label": "3v6_beginner_flip",
+      "n_games": 1250,
+      "elapsed_s": 91.60577341599856,
+      "tier": "beginner"
+    }
+  ]
+}

@@ -59,7 +59,7 @@ const Sidebar = ({ children, show_help = true, helpContent }) => {
           overflowY: 'auto',
         }}
       >
-        <div style={{ padding: '16px' }}>{children}</div>
+        <div style={{ padding: '16px', paddingTop: '60px', paddingBottom: '40px' }}>{children}</div>
       </animated.div>
       <animated.div 
         ref={contentRef}

@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 80px;
+  gap: 64px;
   min-height: calc(100vh - 64px);
   padding: 60px 40px;
   background:
@@ -66,6 +66,22 @@
   flex-wrap: wrap;
 }
 
+/* ── Proof bar (authority signal below hero CTAs) ── */
+
+.hero-proof {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 20px 0 0;
+  letter-spacing: 0.04em;
+}
+
+.hero-proof em {
+  font-style: italic;
+  color: #777;
+}
+
+/* ── Buttons ── */
+
 .btn-primary {
   display: inline-block;
   padding: 14px 36px;
@@ -77,12 +93,18 @@
   background: #111;
   border-radius: 8px;
   text-decoration: none;
-  transition: background 0.2s, transform 0.15s;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
 .btn-primary:hover {
   background: #333;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .btn-secondary {
@@ -97,17 +119,56 @@
   border: 1.5px solid #ccc;
   border-radius: 8px;
   text-decoration: none;
-  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
 .btn-secondary:hover {
   border-color: #888;
   background: #f9f9f9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* ── Hero board with ambient glow ── */
 
 .hero-board {
   flex-shrink: 0;
+  position: relative;
+}
+
+.hero-board-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130%;
+  height: 130%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(140, 140, 140, 0.1) 0%, transparent 70%);
+  animation: ambientPulse 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Keep the board SVG above the glow layer */
+.hero-board .mini-board-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes ambientPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
 }
 
 /* ── Sections ── */
@@ -318,6 +379,10 @@
     justify-content: center;
   }
 
+  .hero-proof {
+    text-align: center;
+  }
+
   .symbols-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -339,5 +404,14 @@
 
   .section-heading {
     font-size: 1.6rem;
+  }
+}
+
+/* ── Accessibility: respect reduced-motion preference ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-board-glow {
+    animation: none;
+    opacity: 0.5;
   }
 }

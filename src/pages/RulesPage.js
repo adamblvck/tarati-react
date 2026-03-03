@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSpring, animated } from 'react-spring';
 import MiniBoard from '../components/MiniBoard';
+import useScrollFadeIn from '../hooks/useScrollFadeIn';
 import './RulesPage.css';
 
 // ────────────────────────────────────────────
@@ -88,20 +90,56 @@ const ENDGAME_STATE = {
   'B4': { color: 'WHITE', isUpgraded: false },
 };
 
+const SPRING_CONFIG = { tension: 120, friction: 14 };
+
 const RulesPage = () => {
+  // ── Hero entrance (triggers once on mount) ──
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const heroTitle = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(20px)',
+    delay: 100,
+    config: SPRING_CONFIG,
+  });
+
+  const heroIntro = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(16px)',
+    delay: 250,
+    config: SPRING_CONFIG,
+  });
+
+  const tocSpring = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(12px)',
+    delay: 400,
+    config: SPRING_CONFIG,
+  });
+
+  // ── Scroll-triggered fade-ins for each rule section ──
+  const setupFade = useScrollFadeIn({ threshold: 0.15 });
+  const movementFade = useScrollFadeIn({ threshold: 0.15 });
+  const strikingFade = useScrollFadeIn({ threshold: 0.15 });
+  const upgradingFade = useScrollFadeIn({ threshold: 0.15 });
+  const upgradedMoveFade = useScrollFadeIn({ threshold: 0.15 });
+  const endgameFade = useScrollFadeIn({ threshold: 0.15 });
+  const ctaFade = useScrollFadeIn({ threshold: 0.2 });
+
   return (
     <div className="rules-page">
       {/* ── Header ── */}
       <section className="rules-hero">
-        <h1 className="rules-title">Rules of Tarati</h1>
-        <p className="rules-intro">
+        <animated.h1 style={heroTitle} className="rules-title">Rules of Tarati</animated.h1>
+        <animated.p style={heroIntro} className="rules-intro">
           A complete guide to the board game by George Spencer Brown.
           Each rule is illustrated with a miniature board.
-        </p>
+        </animated.p>
       </section>
 
       {/* ── Table of Contents ── */}
-      <nav className="rules-toc">
+      <animated.nav style={tocSpring} className="rules-toc">
         <a href="#setup">Setup</a>
         <span className="toc-dot">&middot;</span>
         <a href="#movement">Movement</a>
@@ -113,12 +151,12 @@ const RulesPage = () => {
         <a href="#upgraded-movement">Upgraded Movement</a>
         <span className="toc-dot">&middot;</span>
         <a href="#endgame">End Game</a>
-      </nav>
+      </animated.nav>
 
       {/* ────────────────────────────── */}
       {/* 1. SETUP */}
       {/* ────────────────────────────── */}
-      <section id="setup" className="rule-section">
+      <animated.section id="setup" ref={setupFade.ref} style={setupFade.style} className="rule-section">
         <div className="rule-content">
           <div className="rule-text">
             <h2 className="rule-heading">
@@ -149,12 +187,12 @@ const RulesPage = () => {
             />
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ────────────────────────────── */}
       {/* 2. MOVEMENT */}
       {/* ────────────────────────────── */}
-      <section id="movement" className="rule-section alt-bg">
+      <animated.section id="movement" ref={movementFade.ref} style={movementFade.style} className="rule-section alt-bg">
         <div className="rule-content reverse">
           <div className="rule-text">
             <h2 className="rule-heading">
@@ -191,12 +229,12 @@ const RulesPage = () => {
             />
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ────────────────────────────── */}
       {/* 3. STRIKING */}
       {/* ────────────────────────────── */}
-      <section id="striking" className="rule-section">
+      <animated.section id="striking" ref={strikingFade.ref} style={strikingFade.style} className="rule-section">
         <div className="rule-content">
           <div className="rule-text">
             <h2 className="rule-heading">
@@ -238,12 +276,12 @@ const RulesPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ────────────────────────────── */}
       {/* 4. UPGRADING */}
       {/* ────────────────────────────── */}
-      <section id="upgrading" className="rule-section alt-bg">
+      <animated.section id="upgrading" ref={upgradingFade.ref} style={upgradingFade.style} className="rule-section alt-bg">
         <div className="rule-content reverse">
           <div className="rule-text">
             <h2 className="rule-heading">
@@ -286,12 +324,12 @@ const RulesPage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ────────────────────────────── */}
       {/* 5. UPGRADED MOVEMENT */}
       {/* ────────────────────────────── */}
-      <section id="upgraded-movement" className="rule-section">
+      <animated.section id="upgraded-movement" ref={upgradedMoveFade.ref} style={upgradedMoveFade.style} className="rule-section">
         <div className="rule-content">
           <div className="rule-text">
             <h2 className="rule-heading">
@@ -324,12 +362,12 @@ const RulesPage = () => {
             />
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ────────────────────────────── */}
       {/* 6. END GAME */}
       {/* ────────────────────────────── */}
-      <section id="endgame" className="rule-section alt-bg">
+      <animated.section id="endgame" ref={endgameFade.ref} style={endgameFade.style} className="rule-section alt-bg">
         <div className="rule-content reverse">
           <div className="rule-text">
             <h2 className="rule-heading">
@@ -362,15 +400,15 @@ const RulesPage = () => {
             />
           </div>
         </div>
-      </section>
+      </animated.section>
 
       {/* ── CTA ── */}
-      <section className="rules-cta">
+      <animated.section ref={ctaFade.ref} style={ctaFade.style} className="rules-cta">
         <h2>Ready to try it?</h2>
         <Link to="/play" className="btn-primary">
           Play Tarati
         </Link>
-      </section>
+      </animated.section>
     </div>
   );
 };

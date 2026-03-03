@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSpring, animated } from 'react-spring';
 import MiniBoard from '../components/MiniBoard';
 import { AI_DIFFICULTY_PROFILES } from '../config/aiConfig';
+import useScrollFadeIn from '../hooks/useScrollFadeIn';
 import './AIPage.css';
 
 const EXAMPLE_POSITION = {
@@ -34,47 +36,70 @@ const signalRows = [
   { metric: 'Root stochastic top-k', weight: 'Medium', notes: 'Adds variety while staying near best lines.' }
 ];
 
+const SPRING_CONFIG = { tension: 120, friction: 14 };
+
 const AIPage = () => {
-  return (
-    <div className="ai-page">
-      <section className="ai-hero">
-        <div>
-          <h1 className="ai-title">Tarati AI Engine</h1>
-          <p className="ai-subtitle">
-            A depth-first strategist with modern safeguards:
-            alpha-beta pruning, transposition reuse, and strict move-time budgets.
-          </p>
-          <div className="ai-hero-actions">
-            <Link to="/play" className="btn-primary">Test It In Game</Link>
-            <Link to="/rules" className="btn-secondary">Review Rules</Link>
-          </div>
-        </div>
-        <div className="ai-hero-board">
-          <MiniBoard
-            checkers={EXAMPLE_POSITION}
-            arrows={[['B2', 'A1'], ['B4', 'C7']]}
-            highlightVertices={['B2', 'B4', 'A1', 'C7']}
-            size={330}
-            label="The AI scores and compares many continuations from this structure."
-          />
-        </div>
-      </section>
+  // ── Hero entrance (triggers once on mount) ──
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-      <section className="ai-grid">
-        <article className="ai-card">
-          <h2>How Search Works</h2>
-          <ol>
-            <li>Generate legal moves for the current side.</li>
-            <li>Sort candidates using a fast heuristic.</li>
-            <li>Run minimax with alpha-beta pruning.</li>
-            <li>Cache solved states in a transposition table.</li>
-            <li>At root, round-robin probe each move when budgets are active.</li>
-            <li>Return best move, or weighted top-k when randomization is enabled.</li>
-          </ol>
-        </article>
+  const heroTitle = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(20px)',
+    delay: 100,
+    config: SPRING_CONFIG,
+  });
 
-        <article className="ai-card">
-          <h2>Complexity Pressure</h2>
+  const heroSubtitle = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(16px)',
+    delay: 250,
+    config: SPRING_CONFIG,
+  });
+
+  const heroActions = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'translateY(0px)' : 'translateY(12px)',
+    delay: 400,
+    config: SPRING_CONFIG,
+  });
+
+  const heroBoardSpring = useSpring({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'scale(1)' : 'scale(0.94)',
+    delay: 300,
+    config: { tension: 80, friction: 18 },
+  });
+
+  // ── Scroll-triggered fade-ins for grid cards (staggered) ──
+  const card0Fade = useScrollFadeIn({ threshold: 0.1, delay: 0 });
+  const card1Fade = useScrollFadeIn({ threshold: 0.1, delay: 120 });
+  const card2Fade = useScrollFadeIn({ threshold: 0.1, delay: 240 });
+  const card3Fade = useScrollFadeIn({ threshold: 0.1, delay: 360 });
+  const cardFades = [card0Fade, card1Fade, card2Fade, card3Fade];
+
+  const profilesFade = useScrollFadeIn({ threshold: 0.15 });
+  const footerFade = useScrollFadeIn({ threshold: 0.2 });
+
+  // Card content — keeps JSX clean
+  const gridCards = [
+    {
+      title: 'How Search Works',
+      content: (
+        <ol>
+          <li>Generate legal moves for the current side.</li>
+          <li>Sort candidates using a fast heuristic.</li>
+          <li>Run minimax with alpha-beta pruning.</li>
+          <li>Cache solved states in a transposition table.</li>
+          <li>At root, round-robin probe each move when budgets are active.</li>
+          <li>Return best move, or weighted top-k when randomization is enabled.</li>
+        </ol>
+      ),
+    },
+    {
+      title: 'Complexity Pressure',
+      content: (
+        <>
           <p>
             Higher difficulty has deeper horizons and larger branch pressure.
             Without budgets, the tree can explode. With budgets, the engine remains responsive.
@@ -90,10 +115,13 @@ const AIPage = () => {
               </div>
             ))}
           </div>
-        </article>
-
-        <article className="ai-card">
-          <h2>Budget Utilization</h2>
+        </>
+      ),
+    },
+    {
+      title: 'Budget Utilization',
+      content: (
+        <>
           <p>
             Each difficulty profile controls search effort using `max_ms`, `max_nodes`,
             and `root_probe_nodes`, preventing long turn stalls.
@@ -109,32 +137,74 @@ const AIPage = () => {
               </div>
             ))}
           </div>
-        </article>
-
-        <article className="ai-card">
-          <h2>Scoring Signals</h2>
-          <table className="ai-table">
-            <thead>
-              <tr>
-                <th>Signal</th>
-                <th>Influence</th>
-                <th>Purpose</th>
+        </>
+      ),
+    },
+    {
+      title: 'Scoring Signals',
+      content: (
+        <table className="ai-table">
+          <thead>
+            <tr>
+              <th>Signal</th>
+              <th>Influence</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            {signalRows.map((row) => (
+              <tr key={row.metric}>
+                <td>{row.metric}</td>
+                <td>{row.weight}</td>
+                <td>{row.notes}</td>
               </tr>
-            </thead>
-            <tbody>
-              {signalRows.map((row) => (
-                <tr key={row.metric}>
-                  <td>{row.metric}</td>
-                  <td>{row.weight}</td>
-                  <td>{row.notes}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </article>
+            ))}
+          </tbody>
+        </table>
+      ),
+    },
+  ];
+
+  return (
+    <div className="ai-page">
+      <section className="ai-hero">
+        <div>
+          <animated.h1 style={heroTitle} className="ai-title">Tarati AI Engine</animated.h1>
+          <animated.p style={heroSubtitle} className="ai-subtitle">
+            A depth-first strategist with modern safeguards:
+            alpha-beta pruning, transposition reuse, and strict move-time budgets.
+          </animated.p>
+          <animated.div style={heroActions} className="ai-hero-actions">
+            <Link to="/play" className="btn-primary">Test It In Game</Link>
+            <Link to="/rules" className="btn-secondary">Review Rules</Link>
+          </animated.div>
+        </div>
+        <animated.div style={heroBoardSpring} className="ai-hero-board">
+          <MiniBoard
+            checkers={EXAMPLE_POSITION}
+            arrows={[['B2', 'A1'], ['B4', 'C7']]}
+            highlightVertices={['B2', 'B4', 'A1', 'C7']}
+            size={330}
+            label="The AI scores and compares many continuations from this structure."
+          />
+        </animated.div>
       </section>
 
-      <section className="ai-profiles">
+      <section className="ai-grid">
+        {gridCards.map((card, i) => (
+          <animated.article
+            key={card.title}
+            ref={cardFades[i].ref}
+            style={cardFades[i].style}
+            className="ai-card"
+          >
+            <h2>{card.title}</h2>
+            {card.content}
+          </animated.article>
+        ))}
+      </section>
+
+      <animated.section ref={profilesFade.ref} style={profilesFade.style} className="ai-profiles">
         <h2>Default Difficulty Profiles</h2>
         <p>
           These are loaded from app config and can be changed in the Play UI.
@@ -154,18 +224,17 @@ const AIPage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </animated.section>
 
-      <section className="ai-footer">
+      <animated.section ref={footerFade.ref} style={footerFade.style} className="ai-footer">
         <h2>Why this design?</h2>
         <p>
           It keeps the strategic flavor of deep minimax while behaving like a modern interactive system:
           graceful under pressure, configurable for experimentation, and deterministic enough to study.
         </p>
-      </section>
+      </animated.section>
     </div>
   );
 };
 
 export default AIPage;
-

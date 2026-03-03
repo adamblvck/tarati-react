@@ -1,4 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useSpring, animated } from 'react-spring';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 import AI from '../AI';
 import { gameBoard, applyMoveToBoard } from '../GameBoard';
@@ -47,6 +49,16 @@ const GamePage = () => {
 	const [gameOverState, setGameOverState] = useState(null);
 	const [showBoardRestart, setShowBoardRestart] = useState(false);
 
+	// Player picks WHITE or BLACK; AI plays the opposite color
+	const [playerColor, setPlayerColor] = useState('WHITE');
+	const aiColor = playerColor === 'WHITE' ? 'BLACK' : 'WHITE';
+
+	// Right sidebar (Move History) collapsed by default
+	const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+	// AI settings panel collapsed by default
+	const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
+
 	const [difficulty, setDifficulty] = useState(DEFAULT_AI_DIFFICULTY);
 	const [aiProfiles, setAiProfiles] = useState(cloneProfiles());
 
@@ -78,7 +90,18 @@ const GamePage = () => {
 	}
 
     const boardRef = useRef(null);
+	const moveSheetBodyRef = useRef(null);
 	const { boardSize, vWidth } = useBoardSize(boardRef);
+
+	// ── Board entrance animation ──
+	const [boardMounted, setBoardMounted] = useState(false);
+	useEffect(() => { setBoardMounted(true); }, []);
+	const boardEntrance = useSpring({
+		opacity: boardMounted ? 1 : 0,
+		transform: boardMounted ? 'scale(1)' : 'scale(0.95)',
+		delay: 150,
+		config: { tension: 100, friction: 16 },
+	});
 
 	useEffect(() => {
 		const savedState = localStorage.getItem('gameState');
@@ -128,14 +151,15 @@ const GamePage = () => {
 
 		console.log("Applying the miracle", gameState);
 		
-		// Perform AI MOVE
-		if (isAI && !stopAI && gameState.currentTurn === 'BLACK') {
+		// Perform AI MOVE when it's the AI's turn (opposite of playerColor)
+		if (isAI && !stopAI && gameState.currentTurn === aiColor) {
 			const performAIMove = async () => {
 				await delay();
+				const isMaximizing = aiColor === 'BLACK';
 				const BESTMOVE = AI.getNextBestMove(
 					gameState,
 					Number(currentProfile.depth),
-					true,
+					isMaximizing,
 					{
 						maxMs: toNullableNumber(currentProfile.maxMs),
 						maxNodes: toNullableNumber(currentProfile.maxNodes),
@@ -144,26 +168,14 @@ const GamePage = () => {
 					}
 				);
 				const { move } = BESTMOVE;
-				console.log('BESTMOVE BLACK', BESTMOVE);
+				console.log(`BESTMOVE ${aiColor}`, BESTMOVE);
 				if ( move ) {
 					applyMove( move.from, move.to );
 				}
 			}
 			performAIMove();
 		}
-		else if (isAI && !stopAI && gameState.currentTurn === 'WHITE') {
-			// const performAIMove = async () => {
-			// 	const BESTMOVE = AI.getNextBestMove(gameState, 3, false);
-			// 	const { move } = BESTMOVE;
-			// 	console.log('BESTMOVE WHITE', BESTMOVE);
-			// 	if ( move ) {
-			// 		applyMove( move.from, move.to );
-			// 	}
-			// 	await delay();
-			// }
-			// performAIMove();
-		}
-	}, [gameState, isAI, stopAI, currentProfile, applyMove]);
+	}, [gameState, isAI, stopAI, aiColor, currentProfile, applyMove]);
 
     const undoMove = () => {
         if (currentMoveIndex > 0) {
@@ -185,25 +197,83 @@ const GamePage = () => {
         setGameState(moveHistory[moveHistory.length - 1].state);
     };
 
+	// Auto-scroll the move sheet to the latest entry
+	useEffect(() => {
+		if (moveSheetBodyRef.current) {
+			moveSheetBodyRef.current.scrollTop = moveSheetBodyRef.current.scrollHeight;
+		}
+	}, [moveHistory.length]);
+
     const renderMoveHistory = () => {
+		const initial = initializeGameState();
+
+		// Detect if a capture occurred on this move (checker count dropped)
+		const isCapture = (idx) => {
+			const prevCount = idx === 0
+				? Object.keys(initial.checkers).length
+				: Object.keys(moveHistory[idx - 1].state.checkers).length;
+			return Object.keys(moveHistory[idx].state.checkers).length < prevCount;
+		};
+
+		// Detect if the moved piece got upgraded on this move
+		const isUpgrade = (idx) => {
+			const move = moveHistory[idx];
+			const checker = move.state.checkers[move.to];
+			if (!checker || !checker.isUpgraded) return false;
+			const prevState = idx === 0 ? initial : moveHistory[idx - 1].state;
+			const prevChecker = prevState.checkers[move.from];
+			return prevChecker && !prevChecker.isUpgraded;
+		};
+
+		// Format: "C1–B1" normal, "C1×B5" capture, append "↑" on upgrade
+		const formatCell = (idx) => {
+			const m = moveHistory[idx];
+			const sep = isCapture(idx) ? '×' : '–';
+			const suffix = isUpgrade(idx) ? '↑' : '';
+			return `${m.from}${sep}${m.to}${suffix}`;
+		};
+
+		// Pair moves into rows: White (even index) | Black (odd index)
+		const rows = [];
+		for (let i = 0; i < moveHistory.length; i += 2) {
+			rows.push({
+				num: Math.floor(i / 2) + 1,
+				wIdx: i,
+				bIdx: i + 1 < moveHistory.length ? i + 1 : null,
+			});
+		}
+
         return (
-            <div style={{ maxHeight: '200px', overflowY: 'auto', marginTop: '20px' }}>
-                <ul className='move-history-list' style={{ listStyleType: 'none', padding: 0 }}>
-                    {moveHistory.slice().reverse().map((move, index) => (
-                        <li className='move-history-item' key={index} style={{ marginBottom: '5px' }}>
-                            <span style={{
-                                display: 'inline-block',
-                                width: '10px',
-                                height: '10px',
-                                borderRadius: '50%',
-                                backgroundColor: index === currentMoveIndex ? '#4CAF50' : '#ccc',
-                                marginRight: '10px'
-                            }}></span>
-                            {index + 1} · {move.from} → {move.to}
-                        </li>
-                    ))}
-                </ul>
-            </div>
+			<div className="move-sheet">
+				<div className="move-sheet-header">
+					<span className="ms-num">#</span>
+					<span className="ms-col">White</span>
+					<span className="ms-col">Black</span>
+				</div>
+				<div className="move-sheet-body" ref={moveSheetBodyRef}>
+					{rows.length === 0 && (
+						<div className="ms-empty">No moves yet</div>
+					)}
+					{rows.map(row => (
+						<div
+							key={row.num}
+							className={`ms-row ${row.num % 2 === 0 ? 'ms-alt' : ''}`}
+						>
+							<span className="ms-num">{row.num}.</span>
+							<span className={`ms-col ms-move ${row.wIdx === currentMoveIndex ? 'ms-active' : ''} ${isCapture(row.wIdx) ? 'ms-capture' : ''}`}>
+								{formatCell(row.wIdx)}
+							</span>
+							{row.bIdx !== null ? (
+								<span className={`ms-col ms-move ${row.bIdx === currentMoveIndex ? 'ms-active' : ''} ${isCapture(row.bIdx) ? 'ms-capture' : ''}`}>
+									{formatCell(row.bIdx)}
+								</span>
+							) : (
+								<span className="ms-col" />
+							)}
+						</div>
+					))}
+				</div>
+			</div>
         );
     };
 
@@ -231,10 +301,30 @@ const GamePage = () => {
 				</div>
 			) : null}
 			<div className="game-layout">
+				{/* ── Left Sidebar: game controls ── */}
 				<Sidebar>
-					<button className="form" onClick={clearHistory} style={{marginTop:65}}>
+					<button className="form" onClick={clearHistory}>
 						New Game
 					</button>
+
+					{/* Player color choice */}
+					<div className="form player-color-picker" style={{ marginTop: '12px' }}>
+						<label>Play as</label>
+						<div className="color-toggle">
+							<button
+								className={`color-btn ${playerColor === 'WHITE' ? 'active' : ''}`}
+								onClick={() => setPlayerColor('WHITE')}
+							>
+								<span className="color-dot white-dot" /> White
+							</button>
+							<button
+								className={`color-btn ${playerColor === 'BLACK' ? 'active' : ''}`}
+								onClick={() => setPlayerColor('BLACK')}
+							>
+								<span className="color-dot black-dot" /> Black
+							</button>
+						</div>
+					</div>
 
 					<button className="form" onClick={() => setIsAI(!isAI)}>
 						{isAI ? 'Disable AI' : 'Enable AI'}
@@ -255,56 +345,70 @@ const GamePage = () => {
 					</div>
 
 					<div className="form ai-settings-panel">
-						<div className="ai-settings-title">AI Settings ({difficulty})</div>
-
-						<label htmlFor="ai-depth">Depth</label>
-						<input
-							id="ai-depth"
-							type="number"
-							min="1"
-							value={currentProfile.depth}
-							onChange={(e) => setProfileValue('depth', Number(e.target.value))}
-						/>
-
-						<label htmlFor="ai-max-ms">Max ms per move (empty = unlimited)</label>
-						<input
-							id="ai-max-ms"
-							type="number"
-							min="0"
-							value={currentProfile.maxMs ?? ''}
-							onChange={(e) => setProfileValue('maxMs', e.target.value === '' ? null : Number(e.target.value))}
-						/>
-
-						<label htmlFor="ai-max-nodes">Max nodes (empty = auto/unlimited)</label>
-						<input
-							id="ai-max-nodes"
-							type="number"
-							min="1"
-							value={currentProfile.maxNodes ?? ''}
-							onChange={(e) => setProfileValue('maxNodes', e.target.value === '' ? null : Number(e.target.value))}
-						/>
-
-						<label htmlFor="ai-root-probe">Root probe nodes</label>
-						<input
-							id="ai-root-probe"
-							type="number"
-							min="1"
-							value={currentProfile.rootProbeNodes}
-							onChange={(e) => setProfileValue('rootProbeNodes', Number(e.target.value))}
-						/>
-
-						<label htmlFor="ai-top-k">Stochastic top-k</label>
-						<input
-							id="ai-top-k"
-							type="number"
-							min="1"
-							value={currentProfile.stochasticTopK}
-							onChange={(e) => setProfileValue('stochasticTopK', Number(e.target.value))}
-						/>
-
-						<button className="ai-reset-btn" onClick={resetCurrentDifficultyProfile}>
-							Reset {difficulty} to default
+						<button
+							className="ai-settings-toggle"
+							onClick={() => setIsAiSettingsOpen(!isAiSettingsOpen)}
+							type="button"
+						>
+							<span className="ai-settings-title">AI Settings ({difficulty})</span>
+							<ChevronDown
+								size={16}
+								className={`ai-settings-chevron ${isAiSettingsOpen ? 'open' : ''}`}
+							/>
 						</button>
+
+						{isAiSettingsOpen && (
+							<>
+								<label htmlFor="ai-depth">Depth</label>
+								<input
+									id="ai-depth"
+									type="number"
+									min="1"
+									value={currentProfile.depth}
+									onChange={(e) => setProfileValue('depth', Number(e.target.value))}
+								/>
+
+								<label htmlFor="ai-max-ms">Max ms per move (empty = unlimited)</label>
+								<input
+									id="ai-max-ms"
+									type="number"
+									min="0"
+									value={currentProfile.maxMs ?? ''}
+									onChange={(e) => setProfileValue('maxMs', e.target.value === '' ? null : Number(e.target.value))}
+								/>
+
+								<label htmlFor="ai-max-nodes">Max nodes (empty = auto/unlimited)</label>
+								<input
+									id="ai-max-nodes"
+									type="number"
+									min="1"
+									value={currentProfile.maxNodes ?? ''}
+									onChange={(e) => setProfileValue('maxNodes', e.target.value === '' ? null : Number(e.target.value))}
+								/>
+
+								<label htmlFor="ai-root-probe">Root probe nodes</label>
+								<input
+									id="ai-root-probe"
+									type="number"
+									min="1"
+									value={currentProfile.rootProbeNodes}
+									onChange={(e) => setProfileValue('rootProbeNodes', Number(e.target.value))}
+								/>
+
+								<label htmlFor="ai-top-k">Stochastic top-k</label>
+								<input
+									id="ai-top-k"
+									type="number"
+									min="1"
+									value={currentProfile.stochasticTopK}
+									onChange={(e) => setProfileValue('stochasticTopK', Number(e.target.value))}
+								/>
+
+								<button className="ai-reset-btn" onClick={resetCurrentDifficultyProfile}>
+									Reset {difficulty} to default
+								</button>
+							</>
+						)}
 					</div>
 
 					<div className="form"
@@ -319,30 +423,19 @@ const GamePage = () => {
 					>
 						Current Turn <br/> { gameState.currentTurn}
 					</div>
-
-					<h3>Move History</h3>
-
-					<div style={{display:'flex', flexDirection:'row'}}>
-						<button onClick={undoMove} disabled={currentMoveIndex <= 0}>Back</button>
-						<button onClick={redoMove} disabled={currentMoveIndex >= moveHistory.length - 1}>Forward</button>
-						{ currentMoveIndex !== moveHistory.length - 1 ? <button onClick={moveToCurrentState} disabled={currentMoveIndex === moveHistory.length - 1}>Move to Current</button> : undefined }
-					</div>
-					{renderMoveHistory()}
-					
 				</Sidebar>
 
-				<div className={`game-area ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
-					<div style={{height: 20}}>
-						
-					</div>
+				{/* ── Board area ── */}
+				<animated.div style={boardEntrance} className={`game-area ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
+					<div style={{height: 20}} />
 					<Board
 						ref={boardRef}
 						boardSize={boardSize}
 						vWidth={vWidth}
 						gameState={gameState}
 						gameBoard={gameBoard}
-                        isValidMove={AI.isValidMove}
-                        applyMove={applyMove}
+						isValidMove={AI.isValidMove}
+						applyMove={applyMove}
 						ApplyMoveAI={AI.ApplyMoveAI}
 					/>
 					{showBoardRestart ? (
@@ -352,6 +445,29 @@ const GamePage = () => {
 							</button>
 						</div>
 					) : null}
+				</animated.div>
+
+				{/* ── Right Sidebar: Move History (collapsed by default) ── */}
+				<div className={`history-sidebar-wrapper ${isHistoryOpen ? 'open' : ''}`}>
+					<button
+						className="history-toggle-btn"
+						onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+						aria-label="Toggle Move History"
+					>
+						{isHistoryOpen ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+					</button>
+					<div className="history-sidebar">
+						<div className="history-sidebar-content">
+							<h3 style={{ margin: '0 0 10px' }}>Move History</h3>
+
+							<div style={{display:'flex', flexDirection:'row', gap: 4}}>
+								<button onClick={undoMove} disabled={currentMoveIndex <= 0}>Back</button>
+								<button onClick={redoMove} disabled={currentMoveIndex >= moveHistory.length - 1}>Forward</button>
+								{ currentMoveIndex !== moveHistory.length - 1 ? <button onClick={moveToCurrentState} disabled={currentMoveIndex === moveHistory.length - 1}>Current</button> : undefined }
+							</div>
+							{renderMoveHistory()}
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

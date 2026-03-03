@@ -21,6 +21,7 @@ def play_one_game(
     white_ai_kwargs=None,
     black_ai_kwargs=None,
     random_first_move=False,
+    skip_board_after=False,
 ):
     """Play a single AI-vs-AI game and return (game_record, move_records).
 
@@ -31,6 +32,8 @@ def play_one_game(
     max_moves   : int — half-move limit (prevents infinite loops)
     seed              : int  — random seed for reproducibility (None = non-deterministic)
     random_first_move : bool — if True, move 1 is sampled uniformly from legal moves
+    skip_board_after  : bool — if True, omit board_after JSON from move records
+                               (saves ~80% IPC and storage for large batch runs)
     """
     if seed is not None:
         random.seed(seed)
@@ -79,7 +82,7 @@ def play_one_game(
             'to_vertex': to_v,
             'strikes': json.dumps(strikes),
             'upgrades': json.dumps(upgrades),
-            'board_after': json.dumps(new_board['checkers']),
+            'board_after': None if skip_board_after else json.dumps(new_board['checkers']),
         })
 
         state = new_board
@@ -115,25 +118,18 @@ def play_one_game(
 
 def worker(args):
     """Top-level worker for ProcessPoolExecutor (must be importable for pickling)."""
-    # Backward compatible with old task tuple shapes.
-    if len(args) == 4:
-        white_depth, black_depth, max_moves, seed = args
-        white_ai_kwargs = None
-        black_ai_kwargs = None
-        random_first_move = False
-    elif len(args) == 6:
-        white_depth, black_depth, max_moves, seed, white_ai_kwargs, black_ai_kwargs = args
-        random_first_move = False
-    else:
-        (
-            white_depth,
-            black_depth,
-            max_moves,
-            seed,
-            white_ai_kwargs,
-            black_ai_kwargs,
-            random_first_move,
-        ) = args
+    # Backward compatible with old task tuple shapes:
+    #   4-tuple: (white_depth, black_depth, max_moves, seed)
+    #   6-tuple: + (white_ai_kwargs, black_ai_kwargs)
+    #   7-tuple: + (random_first_move,)
+    #   8-tuple: + (skip_board_after,)
+    n = len(args)
+
+    white_depth, black_depth, max_moves, seed = args[:4]
+    white_ai_kwargs = args[4] if n > 4 else None
+    black_ai_kwargs = args[5] if n > 5 else None
+    random_first_move = args[6] if n > 6 else False
+    skip_board_after = args[7] if n > 7 else False
 
     return play_one_game(
         white_depth,
@@ -143,4 +139,5 @@ def worker(args):
         white_ai_kwargs=white_ai_kwargs,
         black_ai_kwargs=black_ai_kwargs,
         random_first_move=random_first_move,
+        skip_board_after=skip_board_after,
     )

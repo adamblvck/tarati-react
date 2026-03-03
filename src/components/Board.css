@@ -23,6 +23,25 @@
 	cursor: pointer;
 }
 
+/* Board position labels should not be selectable or intercept pointer events */
+.vertex text {
+	user-select: none;
+	-webkit-user-select: none;
+	pointer-events: none;
+}
+
+/* Remove focus outline / blue halo on draggable checkers while keeping touch responsive */
+.board-svg g[tabindex] {
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+.board-svg g[tabindex]:focus {
+	outline: none;
+}
+.board-svg g[tabindex]:focus-visible {
+	outline: none;
+}
+
 .vertex.is-over circle {
 	fill: lightgreen;
 }
