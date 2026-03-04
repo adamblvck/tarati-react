@@ -121,12 +121,16 @@ const DEAD_PROMOTED = {
   'C5': { color: 'BLACK', isUpgraded: false },
 };
 
-// 8. End game — all pieces same color
+// 8. End game — all 8 pieces converted to same color (total conversion)
 const ENDGAME_STATE = {
   'C3': { color: 'WHITE', isUpgraded: false },
   'B2': { color: 'WHITE', isUpgraded: false },
   'A1': { color: 'WHITE', isUpgraded: true },
   'B4': { color: 'WHITE', isUpgraded: false },
+  'C7': { color: 'WHITE', isUpgraded: true },
+  'D1': { color: 'WHITE', isUpgraded: false },
+  'C10': { color: 'WHITE', isUpgraded: false },
+  'B6': { color: 'WHITE', isUpgraded: false },
 };
 
 const SPRING_CONFIG = { tension: 120, friction: 14 };
@@ -649,9 +653,9 @@ const RulesPage = () => {
           <div className="rule-board">
             <MiniBoard
               checkers={ENDGAME_STATE}
-              highlightVertices={['C3', 'B2', 'A1', 'B4']}
+              highlightVertices={['C3', 'B2', 'A1', 'B4', 'C7', 'D1', 'C10', 'B6']}
               size={280}
-              label="All pieces are White — White wins"
+              label="All 8 pieces are White — White wins"
             />
           </div>
         </div>
