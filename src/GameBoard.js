@@ -42,41 +42,86 @@ export const gameBoard = {
 	}
 };
 
+// Pre-computed adjacency list (shared by GameBoard and AI)
+export const ADJACENCY = {};
+for (const vertex of gameBoard.vertices) {
+	ADJACENCY[vertex] = [];
+}
+for (const [a, b] of gameBoard.edges) {
+	ADJACENCY[a].push(b);
+	ADJACENCY[b].push(a);
+}
+
+// Edge set for O(1) move validity check
+export const EDGE_SET = new Set();
+for (const [a, b] of gameBoard.edges) {
+	EDGE_SET.add(`${a}|${b}`);
+	EDGE_SET.add(`${b}|${a}`);
+}
+
 export const applyMoveToBoard = (prevState, from, to) => { 
 	let newState = JSON.parse(JSON.stringify(prevState));
+
+	// Dead piece promotion: from === to means in-place upgrade (patent §6.3)
+	if (from === to) {
+		if (newState.checkers[from]) {
+			newState.checkers[from].isUpgraded = true;
+		}
+		return newState;
+	}
+
 	const movedChecker = newState.checkers[from];
 	delete newState.checkers[from];
 	newState.checkers[to] = movedChecker;
 
-	// Check for upgrades
+	// Pre-adjacency rule (patent §4.1): positions adjacent to the mover's
+	// origin cannot be struck — the attacker must approach from distance.
+	const fromNeighbors = new Set(ADJACENCY[from]);
+
+	// Mover upgrade: landing on the opponent's home base (patent §5.1)
 	if (gameBoard.homeBases.white.includes(to) && movedChecker.color === 'BLACK') {
-			movedChecker.isUpgraded = true;
+		movedChecker.isUpgraded = true;
 	} else if (gameBoard.homeBases.black.includes(to) && movedChecker.color === 'WHITE') {
-			movedChecker.isUpgraded = true;
+		movedChecker.isUpgraded = true;
 	}
 
-	// Turn over adjacent checkers
-	gameBoard.edges.forEach(edge => {
-			if (edge.includes(to)) {
-					const adjacentVertex = edge.find(v => v !== to);
+	// Strike: flip adjacent opponent pieces (patent §4)
+	for (const adjacentVertex of ADJACENCY[to]) {
+		// Pre-adjacency rule: skip pieces that were already adjacent before the move
+		if (fromNeighbors.has(adjacentVertex)) continue;
 
-					// console.log("BEST MOVE -->", movedChecker)
+		const target = newState.checkers[adjacentVertex];
+		if (target && target.color !== movedChecker.color) {
+			const originalColor = target.color;
+			target.color = movedChecker.color;
 
-					if (newState.checkers[adjacentVertex] && newState.checkers[adjacentVertex].color !== movedChecker?.color) {
-							newState.checkers[adjacentVertex].color = movedChecker?.color;
-
-							
-
-							// Check for upgrades
-							if (gameBoard.homeBases.white.includes(adjacentVertex) && newState.checkers[adjacentVertex].color === 'BLACK') {
-									newState.checkers[adjacentVertex].isUpgraded = true;
-							} else if (gameBoard.homeBases.black.includes(adjacentVertex) && newState.checkers[adjacentVertex].color === 'WHITE') {
-									newState.checkers[adjacentVertex].isUpgraded = true;
-							}
-
-					}
+			// Captured-on-own-home exception (patent §5.2): a piece captured
+			// while sitting on its own home base is NOT immediately promoted.
+			const originalHome = gameBoard.homeBases[originalColor.toLowerCase()];
+			if (!originalHome.includes(adjacentVertex)) {
+				if (gameBoard.homeBases.white.includes(adjacentVertex) && target.color === 'BLACK') {
+					target.isUpgraded = true;
+				} else if (gameBoard.homeBases.black.includes(adjacentVertex) && target.color === 'WHITE') {
+					target.isUpgraded = true;
+				}
 			}
-	});
+		}
+	}
+
+	// Sole remaining piece must be promoted (patent §6.4)
+	const colorCounts = { WHITE: { total: 0, cobVertex: null }, BLACK: { total: 0, cobVertex: null } };
+	for (const [vertex, checker] of Object.entries(newState.checkers)) {
+		colorCounts[checker.color].total++;
+		if (!checker.isUpgraded) {
+			colorCounts[checker.color].cobVertex = vertex;
+		}
+	}
+	for (const color of ['WHITE', 'BLACK']) {
+		const cc = colorCounts[color];
+		if (cc.total === 1 && cc.cobVertex !== null) {
+			newState.checkers[cc.cobVertex].isUpgraded = true;
+		}
+	}
 
 	return newState;
 }

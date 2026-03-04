@@ -87,31 +87,64 @@ def apply_move_to_board(state, from_v, to_v):
     strikes    — list of vertices whose pieces were flipped
     upgrades   — list of vertices whose pieces were upgraded (includes mover)
     """
-    # Deep-copy checkers (each checker is a flat dict of primitives)
     new_checkers = {k: dict(v) for k, v in state['checkers'].items()}
+
+    # Dead piece promotion: from_v == to_v means in-place upgrade (patent §6.3)
+    if from_v == to_v:
+        if from_v in new_checkers:
+            new_checkers[from_v]['isUpgraded'] = True
+        new_state = {'checkers': new_checkers, 'currentTurn': state['currentTurn']}
+        return new_state, [], [from_v]
 
     mover = new_checkers.pop(from_v)
     new_checkers[to_v] = mover
 
+    # Pre-adjacency rule (patent §4.1): positions adjacent to the mover's
+    # origin cannot be struck — the attacker must approach from distance.
+    from_neighbors = set(ADJACENCY[from_v])
+
     upgrades = []
 
-    # Mover upgrade: landing on the opponent's home base
+    # Mover upgrade: landing on the opponent's home base (patent §5.1)
     opp_color = 'BLACK' if mover['color'] == 'WHITE' else 'WHITE'
     if to_v in HOME_BASES[opp_color]:
         mover['isUpgraded'] = True
         upgrades.append(to_v)
 
-    # Strike: flip every adjacent opponent piece to mover's colour
+    # Strike: flip adjacent opponent pieces (patent §4)
     strikes = []
     for adj in ADJACENCY[to_v]:
+        # Pre-adjacency rule: skip pieces that were adjacent before the move
+        if adj in from_neighbors:
+            continue
         if adj in new_checkers and new_checkers[adj]['color'] != mover['color']:
+            original_color = new_checkers[adj]['color']
             strikes.append(adj)
             new_checkers[adj]['color'] = mover['color']
-            # Struck piece upgrade: now on its new team's opponent home base
-            struck_opp = 'BLACK' if new_checkers[adj]['color'] == 'WHITE' else 'WHITE'
-            if adj in HOME_BASES[struck_opp]:
-                new_checkers[adj]['isUpgraded'] = True
-                upgrades.append(adj)
+
+            # Captured-on-own-home exception (patent §5.2): a piece captured
+            # while sitting on its own home base is NOT immediately promoted.
+            if adj not in HOME_BASES[original_color]:
+                struck_opp = 'BLACK' if new_checkers[adj]['color'] == 'WHITE' else 'WHITE'
+                if adj in HOME_BASES[struck_opp]:
+                    new_checkers[adj]['isUpgraded'] = True
+                    upgrades.append(adj)
+
+    # Sole remaining piece must be promoted (patent §6.4)
+    color_info = {}
+    for vertex, checker in new_checkers.items():
+        c = checker['color']
+        if c not in color_info:
+            color_info[c] = {'total': 0, 'cob_vertex': None}
+        color_info[c]['total'] += 1
+        if not checker['isUpgraded']:
+            color_info[c]['cob_vertex'] = vertex
+    for c in ('WHITE', 'BLACK'):
+        ci = color_info.get(c)
+        if ci and ci['total'] == 1 and ci['cob_vertex'] is not None:
+            new_checkers[ci['cob_vertex']]['isUpgraded'] = True
+            if ci['cob_vertex'] not in upgrades:
+                upgrades.append(ci['cob_vertex'])
 
     new_state = {'checkers': new_checkers, 'currentTurn': state['currentTurn']}
     return new_state, strikes, upgrades

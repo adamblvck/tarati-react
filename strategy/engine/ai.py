@@ -24,8 +24,15 @@ EXPERT_MAX_NODES = 25_000
 
 # -- Core functions --------------------------------------------------------
 
+# Outermost home-base positions where non-upgraded cobs become dead (patent §6.1)
+DEAD_POSITIONS = {
+    'WHITE': frozenset(['D3', 'D4']),
+    'BLACK': frozenset(['D1', 'D2']),
+}
+
+
 def is_valid_move(game_state, from_v, to_v):
-    """Exact port of AI.js isValidMove."""
+    """Move validation — implements patent §3."""
     if from_v == to_v:
         return False
 
@@ -42,29 +49,55 @@ def is_valid_move(game_state, from_v, to_v):
     if checker['color'] != game_state['currentTurn']:
         return False
 
-    if not checker['isUpgraded']:
-        ensure_positions()
-        from_y = POSITION_Y[from_v]
-        to_y = POSITION_Y[to_v]
-        if checker['color'] == 'WHITE' and (from_y - to_y > 10):
-            return True
-        elif checker['color'] == 'BLACK' and (to_y - from_y > 10):
-            return True
-        else:
-            return False
+    # Roks (upgraded pieces) can move in any direction (patent §3.3)
+    if checker['isUpgraded']:
+        return True
 
-    return True
+    # Home-base exception: cobs on their own home base can move any direction (patent §3.2)
+    if from_v in HOME_BASES[checker['color']]:
+        return True
+
+    # Forward-only for regular cobs (patent §3.1)
+    ensure_positions()
+    from_y = POSITION_Y[from_v]
+    to_y = POSITION_Y[to_v]
+    if checker['color'] == 'WHITE' and (from_y - to_y > 10):
+        return True
+    elif checker['color'] == 'BLACK' and (to_y - from_y > 10):
+        return True
+
+    return False
 
 
 def get_all_possible_moves(game_state):
-    """Return list of (from_v, to_v) tuples for the current player."""
-    moves = []
+    """Return list of (from_v, to_v) tuples for the current player.
+
+    When no normal moves exist, returns dead piece promotions (patent §6.3).
+    Promotions are represented as (vertex, vertex) — from == to.
+    """
+    normal_moves = []
     for from_v, checker in game_state['checkers'].items():
         if checker['color'] == game_state['currentTurn']:
             for to_v in ADJACENCY[from_v]:
                 if is_valid_move(game_state, from_v, to_v):
-                    moves.append((from_v, to_v))
-    return moves
+                    normal_moves.append((from_v, to_v))
+    if normal_moves:
+        return normal_moves
+
+    # No normal moves — check for dead piece promotions
+    promotions = []
+    for vertex, checker in game_state['checkers'].items():
+        if checker['color'] != game_state['currentTurn']:
+            continue
+        if checker['isUpgraded']:
+            continue
+        dead_pos = DEAD_POSITIONS.get(checker['color'])
+        if not dead_pos or vertex not in dead_pos:
+            continue
+        has_exit = any(adj not in game_state['checkers'] for adj in ADJACENCY[vertex])
+        if has_exit:
+            promotions.append((vertex, vertex))
+    return promotions
 
 
 def apply_move_ai(board_state, from_v, to_v):
@@ -75,11 +108,40 @@ def apply_move_ai(board_state, from_v, to_v):
 
 
 def is_game_over(game_state):
-    """Game ends when current player has no moves or all pieces are one colour."""
+    """Game ends when current player has no moves (including promotions)
+    or all pieces are one colour."""
     if not get_all_possible_moves(game_state):
         return True
     colors = set(c['color'] for c in game_state['checkers'].values())
     return len(colors) == 1
+
+
+# -- Draw detection utilities (patent §7.2) --------------------------------
+
+def hash_position(game_state):
+    """Deterministic position hash for repetition tracking."""
+    items = tuple(sorted(
+        (k, v['color'], v['isUpgraded'])
+        for k, v in game_state['checkers'].items()
+    ))
+    return hash((items, game_state['currentTurn']))
+
+
+def check_threefold_repetition(position_hashes):
+    """Return True if any position has appeared >= 3 times."""
+    counts = {}
+    for h in position_hashes:
+        counts[h] = counts.get(h, 0) + 1
+        if counts[h] >= 3:
+            return True
+    return False
+
+
+def check_fifty_move_rule(cob_moved_flags):
+    """Return True if the last 100 half-moves had no cob movement or promotion."""
+    if len(cob_moved_flags) < 100:
+        return False
+    return not any(cob_moved_flags[-100:])
 
 
 def evaluate_board(game_state):

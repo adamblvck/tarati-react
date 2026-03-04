@@ -1,5 +1,5 @@
 import Data from './helpers/position';
-import { gameBoard, applyMoveToBoard } from './GameBoard';
+import { gameBoard, applyMoveToBoard, ADJACENCY, EDGE_SET } from './GameBoard';
 
 // Constants for evaluation
 const WINNING_SCORE = 1000000;
@@ -7,17 +7,11 @@ const ROOT_PROBE_NODES = 50;
 const HARD_MAX_NODES = 15000;
 const EXPERT_MAX_NODES = 25000;
 
-const EDGE_SET = new Set();
-const ADJACENCY = {};
-for (const vertex of gameBoard.vertices) {
-  ADJACENCY[vertex] = [];
-}
-for (const [a, b] of gameBoard.edges) {
-  EDGE_SET.add(`${a}|${b}`);
-  EDGE_SET.add(`${b}|${a}`);
-  ADJACENCY[a].push(b);
-  ADJACENCY[b].push(a);
-}
+// Outermost home-base positions where non-upgraded cobs become dead (patent §6.1)
+const DEAD_POSITIONS = {
+  WHITE: ['D3', 'D4'],
+  BLACK: ['D1', 'D2'],
+};
 
 const POSITION_Y = {};
 for (const vertex of gameBoard.vertices) {
@@ -318,17 +312,32 @@ const evaluateBoard = (gameState) => {
 };
 
 const getAllPossibleMoves = (gameState) => {
-  const possibleMoves = [];
+  const normalMoves = [];
   for (const [from, checker] of Object.entries(gameState.checkers)) {
     if (checker.color === gameState.currentTurn) {
       for (const to of ADJACENCY[from]) {
         if (isValidMove(gameState, from, to)) {
-          possibleMoves.push({ from, to });
+          normalMoves.push({ from, to });
         }
       }
     }
   }
-  return possibleMoves;
+  if (normalMoves.length > 0) return normalMoves;
+
+  // No normal moves — check for dead piece promotions (patent §6.3).
+  // A player stuck with only dead cobs may promote one to a rok.
+  const promotions = [];
+  for (const [vertex, checker] of Object.entries(gameState.checkers)) {
+    if (checker.color !== gameState.currentTurn) continue;
+    if (checker.isUpgraded) continue;
+    const deadPos = DEAD_POSITIONS[checker.color];
+    if (!deadPos || !deadPos.includes(vertex)) continue;
+    const hasExit = ADJACENCY[vertex].some(adj => !gameState.checkers[adj]);
+    if (hasExit) {
+      promotions.push({ from: vertex, to: vertex, isPromotion: true });
+    }
+  }
+  return promotions;
 };
 
 const ApplyMoveAI = (boardState, from, to) => {
@@ -339,38 +348,63 @@ const ApplyMoveAI = (boardState, from, to) => {
   };
 }
 
+// -- Draw detection utilities (patent §7.2) --------------------------------
+
+// Hash a position for repetition tracking (same as internal hashBoard)
+const hashPosition = (gameState) => {
+  const sortedPieces = Object.entries(gameState.checkers)
+    .map(([vertex, checker]) => [vertex, checker.color, checker.isUpgraded])
+    .sort((a, b) => (a[0] > b[0] ? 1 : -1));
+  return JSON.stringify([gameState.currentTurn, sortedPieces]);
+};
+
+// Threefold repetition: returns true if the given position hash has appeared >= 3 times
+const checkThreefoldRepetition = (positionHashes) => {
+  const counts = {};
+  for (const h of positionHashes) {
+    counts[h] = (counts[h] || 0) + 1;
+    if (counts[h] >= 3) return true;
+  }
+  return false;
+};
+
+// 50-move rule: returns true if 50+ consecutive move-pairs had no cob movement or promotion.
+// cobMovedFlags is a boolean[] parallel to the move history, true when a cob was moved or promoted.
+const checkFiftyMoveRule = (cobMovedFlags) => {
+  if (cobMovedFlags.length < 100) return false;
+  const last100 = cobMovedFlags.slice(-100);
+  return last100.every(flag => !flag);
+};
+
 const isValidMove = (_gameState, from, to) => {
+	if (from === to) return false;
 
-	// same square is not a move
-	if (from === to ) return false;
+	if (!EDGE_SET.has(`${from}|${to}`)) return false;
 
-	// Implement move validation logic
-	const isValidEdge = EDGE_SET.has(`${from}|${to}`);
-	// check if move is single step
-	if (!isValidEdge) return false;
-
-	// Check if the from vertex has a checker
 	const checker = _gameState.checkers[from];
 	if (!checker) return false;
 
-	// Check if the destination is empty (can't stack)
 	if (_gameState.checkers[to]) return false;
 
-	// if not current turn - not allowed
 	if (checker.color !== _gameState.currentTurn) return false;
 
-	// Check if the move is forward (for non-upgraded checkers)
-	if (!checker.isUpgraded) {
-		const fromY = POSITION_Y[from];
-		const toY = POSITION_Y[to];
-		if (checker.color === 'WHITE' && (fromY - toY > 10)) return true;
-		else
-			if (checker.color === 'BLACK' && (toY - fromY > 10)) return true;
-		else
-			return false;
-	}
+	// Roks (upgraded pieces) can move in any direction (patent §3.3)
+	if (checker.isUpgraded) return true;
 
-	return true;
+	// Home-base exception: cobs starting on their own home base
+	// can move in any direction (patent §3.2)
+	const ownHome = checker.color === 'WHITE'
+		? gameBoard.homeBases.white
+		: gameBoard.homeBases.black;
+	if (ownHome.includes(from)) return true;
+
+	// Forward-only for regular cobs (patent §3.1)
+	const fromY = POSITION_Y[from];
+	const toY = POSITION_Y[to];
+	if (checker.color === 'WHITE' && (fromY - toY > 10)) return true;
+	if (checker.color === 'BLACK' && (toY - fromY > 10)) return true;
+
+	return false;
 };
 
 const AI = {
@@ -379,7 +413,10 @@ const AI = {
 	evaluateBoard,
 	getAllPossibleMoves,
 	ApplyMoveAI,
-	isValidMove
+	isValidMove,
+	hashPosition,
+	checkThreefoldRepetition,
+	checkFiftyMoveRule,
 };
 
 export default AI;

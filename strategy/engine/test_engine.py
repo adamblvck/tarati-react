@@ -85,19 +85,19 @@ class TestStriking(unittest.TestCase):
     """Test 2: A strike that flips adjacent pieces."""
 
     def test_single_strike(self):
-        """Move a WHITE piece adjacent to a BLACK piece and verify it flips."""
+        """Move a WHITE piece from non-adjacent position and verify strike."""
+        # Pre-adjacency rule: B1 IS adjacent to A1, so B1→B2 won't strike A1.
+        # Use C1→B1 instead: C1 is NOT adjacent to A1, B1 IS adjacent to A1.
         state = {
             'checkers': {
-                'B1': {'color': 'WHITE', 'isUpgraded': True},
+                'C1': {'color': 'WHITE', 'isUpgraded': True},
                 'A1': {'color': 'BLACK', 'isUpgraded': False},
             },
             'currentTurn': 'WHITE',
         }
-        new_state, strikes, upgrades = apply_move_to_board(state, 'B1', 'B2')
-        # A1 is adjacent to B2, so it should be struck
-        if 'A1' in [a for a in ADJACENCY['B2']]:
-            self.assertIn('A1', strikes)
-            self.assertEqual(new_state['checkers']['A1']['color'], 'WHITE')
+        new_state, strikes, upgrades = apply_move_to_board(state, 'C1', 'B1')
+        self.assertIn('A1', strikes)
+        self.assertEqual(new_state['checkers']['A1']['color'], 'WHITE')
 
     def test_double_strike(self):
         """Move that flips 2 adjacent opponent pieces simultaneously."""
@@ -135,52 +135,27 @@ class TestUpgrades(unittest.TestCase):
         self.assertTrue(new_state['checkers']['C7']['isUpgraded'])
         self.assertIn('C7', upgrades)
 
-    def test_struck_piece_upgrades_on_new_home(self):
-        """A struck piece that ends up on its new team's opponent home should upgrade."""
-        # Place BLACK at C7 (BLACK's own home). WHITE moves adjacent and strikes it.
-        # After strike, C7 piece becomes WHITE. WHITE piece on C7 (BLACK home) → upgrade.
+    def test_struck_piece_on_own_home_not_upgraded(self):
+        """Per patent §5.2, a piece captured on its own home base is NOT upgraded.
+
+        A struck piece that sits on its original owner's home base stays a cob.
+        The only way to promote is by moving onto the opponent's home base.
+        """
+        # BLACK at C8 (Black's home). WHITE at C6 (upgraded) moves to C7.
+        # C7 is adjacent to C8. C6 is NOT adjacent to C8 → strike happens.
+        # But C8 is BLACK's own home → captured-on-own-home → no upgrade.
         state = {
             'checkers': {
                 'C6': {'color': 'WHITE', 'isUpgraded': True},
-                'C7': {'color': 'BLACK', 'isUpgraded': False},
-            },
-            'currentTurn': 'WHITE',
-        }
-        # C6 -> B3 won't hit C7. Let's use B4 which is adjacent to C7.
-        state['checkers'] = {
-            'B5': {'color': 'WHITE', 'isUpgraded': True},
-            'C9': {'color': 'BLACK', 'isUpgraded': False},
-            'C10': {'color': 'BLACK', 'isUpgraded': False},
-        }
-        # Move B5 -> C9? No, C9 is occupied. 
-        # Let me set up a cleaner scenario.
-        state = {
-            'checkers': {
-                'C6': {'color': 'WHITE', 'isUpgraded': True},
-                'C7': {'color': 'BLACK', 'isUpgraded': False},
-            },
-            'currentTurn': 'WHITE',
-        }
-        # C6 is adjacent to C7 and B3 and C5 and B4 (check adjacency)
-        # Actually C6 -> C7 is an edge. But C7 is occupied.
-        # Let's move to B3 (adjacent to C6, C5). That won't hit C7.
-        # Better approach: move to B4 which is adjacent to C7.
-        # But is C6 adjacent to B4? C6's adjacency: C5, C7, B3
-        # Let's use a different setup.
-        state = {
-            'checkers': {
-                'B4': {'color': 'WHITE', 'isUpgraded': True},
                 'C8': {'color': 'BLACK', 'isUpgraded': False},
             },
             'currentTurn': 'WHITE',
         }
-        # B4 adjacent to: B3, B5, C7, C8, A1
-        # Move B4 -> C7. C7 is empty. C8 is adjacent to C7. C8 is BLACK → strike.
-        # After strike, C8 becomes WHITE. C8 is in BLACK's home. WHITE on BLACK home → upgrade.
-        new_state, strikes, upgrades = apply_move_to_board(state, 'B4', 'C7')
+        new_state, strikes, upgrades = apply_move_to_board(state, 'C6', 'C7')
         self.assertIn('C8', strikes)
-        self.assertTrue(new_state['checkers']['C8']['isUpgraded'],
-                        "Struck piece on opponent home should upgrade")
+        self.assertEqual(new_state['checkers']['C8']['color'], 'WHITE')
+        self.assertFalse(new_state['checkers']['C8']['isUpgraded'],
+                         "Piece captured on its own home base should NOT be upgraded")
 
 
 class TestGameOver(unittest.TestCase):
