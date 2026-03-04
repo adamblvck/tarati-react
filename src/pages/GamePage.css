@@ -75,6 +75,20 @@
   min-width: 110px;
 }
 
+/* Draw-specific modal styling */
+.game-over-draw {
+  border-left: 4px solid #8e8e93;
+}
+
+.game-over-draw h2 {
+  color: #636366;
+}
+
+.game-over-draw p {
+  color: #555;
+  line-height: 1.6;
+}
+
 .board-restart-banner {
   position: absolute;
   left: 50%;

@@ -49,6 +49,10 @@ const GamePage = () => {
 	const [gameOverState, setGameOverState] = useState(null);
 	const [showBoardRestart, setShowBoardRestart] = useState(false);
 
+	// Draw detection state (patent §7.2)
+	const [positionHashes, setPositionHashes] = useState(() => [AI.hashPosition(initializeGameState())]);
+	const [cobMovedFlags, setCobMovedFlags] = useState([]);
+
 	// Player picks WHITE or BLACK; AI plays the opposite color
 	const [playerColor, setPlayerColor] = useState('WHITE');
 	const aiColor = playerColor === 'WHITE' ? 'BLACK' : 'WHITE';
@@ -84,9 +88,12 @@ const GamePage = () => {
 	const clearHistory = () => {
 		setGameOverState(null);
 		setShowBoardRestart(false);
-		setMoveHistory([]); // reset history
-		setCurrentMoveIndex(-1); // reset position of history in game
-		setGameState(initializeGameState()); // reset board
+		setMoveHistory([]);
+		setCurrentMoveIndex(-1);
+		const freshState = initializeGameState();
+		setGameState(freshState);
+		setPositionHashes([AI.hashPosition(freshState)]);
+		setCobMovedFlags([]);
 	}
 
     const boardRef = useRef(null);
@@ -134,18 +141,45 @@ const GamePage = () => {
             newMoveHistory.push({ from, to, state: nextState });
             setMoveHistory(newMoveHistory);
             setCurrentMoveIndex(currentMoveIndex + 1);
-			
+
+			// Draw tracking: record position hash and whether a cob moved
+			const newHash = AI.hashPosition(nextState);
+			const movedPiece = prevState.checkers[from];
+			const wasCobMove = movedPiece && !movedPiece.isUpgraded;
+			const newHashes = [...positionHashes, newHash];
+			const newCobFlags = [...cobMovedFlags, wasCobMove];
+			setPositionHashes(newHashes);
+			setCobMovedFlags(newCobFlags);
+
+			// Check for win
 			if (AI.isGameOver(nextState)) {
 				setGameOverState({
 					winner: prevState.currentTurn,
-					message: `${prevState.currentTurn} wins!`
+					message: `${prevState.currentTurn} wins!`,
+					isDraw: false,
+				});
+				setShowBoardRestart(false);
+			}
+			// Check for draw by threefold repetition or 50-move rule
+			else if (AI.checkThreefoldRepetition(newHashes)) {
+				setGameOverState({
+					winner: null,
+					message: 'Draw by threefold repetition — the same position has occurred three times.',
+					isDraw: true,
+				});
+				setShowBoardRestart(false);
+			} else if (AI.checkFiftyMoveRule(newCobFlags)) {
+				setGameOverState({
+					winner: null,
+					message: 'Draw by the 50-move rule — 50 consecutive moves by each player without moving or promoting a cob.',
+					isDraw: true,
 				});
 				setShowBoardRestart(false);
 			}
 
             return nextState;
         });
-    }, [moveHistory, currentMoveIndex]);
+    }, [moveHistory, currentMoveIndex, positionHashes, cobMovedFlags]);
 
 	useEffect(() => {
 
@@ -207,12 +241,14 @@ const GamePage = () => {
     const renderMoveHistory = () => {
 		const initial = initializeGameState();
 
-		// Detect if a capture occurred on this move (checker count dropped)
+		// Detect if a strike occurred on this move (opponent piece color changed)
 		const isCapture = (idx) => {
-			const prevCount = idx === 0
-				? Object.keys(initial.checkers).length
-				: Object.keys(moveHistory[idx - 1].state.checkers).length;
-			return Object.keys(moveHistory[idx].state.checkers).length < prevCount;
+			const prevCheckers = idx === 0 ? initial.checkers : moveHistory[idx - 1].state.checkers;
+			const currCheckers = moveHistory[idx].state.checkers;
+			const moverColor = idx % 2 === 0 ? 'WHITE' : 'BLACK';
+			const prevOppCount = Object.values(prevCheckers).filter(c => c.color !== moverColor).length;
+			const currOppCount = Object.values(currCheckers).filter(c => c.color !== moverColor).length;
+			return currOppCount < prevOppCount;
 		};
 
 		// Detect if the moved piece got upgraded on this move
@@ -290,8 +326,8 @@ const GamePage = () => {
 		<div className="game-page">
 			{gameOverState ? (
 				<div className="game-over-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
-					<div className="game-over-modal">
-						<h2 id="game-over-title">Game Over</h2>
+					<div className={`game-over-modal ${gameOverState.isDraw ? 'game-over-draw' : ''}`}>
+						<h2 id="game-over-title">{gameOverState.isDraw ? 'Draw' : 'Game Over'}</h2>
 						<p>{gameOverState.message}</p>
 						<div className="game-over-actions">
 							<button onClick={handleContinueAfterGameOver}>Continue</button>
