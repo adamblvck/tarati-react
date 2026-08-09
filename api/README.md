@@ -126,7 +126,8 @@ created; nothing is left live in the lobby.
 
 The function runs **unprovisioned** (`min-scale=0`): nothing is billed while
 nobody is playing, and Scaleway starts an instance on the first request. The
-cost is a cold start on that first request — measured at 8–10s — so warm it
+cost is a cold start on that first request — measured between 4s and 10s,
+the upper end when a burst forces several instances up at once — so warm it
 before an audience arrives rather than during.
 
 `FN_ID=7da16d06-30f9-41ae-8c6c-e2f485d6ed91`, region `nl-ams`.
@@ -156,7 +157,7 @@ Measured, so you can size this against real numbers rather than guessing:
 
 | | |
 |---|---|
-| cold start (unprovisioned) | 8–10 s on the first request |
+| cold start (unprovisioned) | 4–10 s on the first request |
 | warm poll (`/games/:id/state`) | p50 0.36 s at 40 concurrent |
 | sustained load through the proxy | 11 req/s (~40 players) completely clean |
 | pool ceiling | `max-scale` x `PGPOOL_MAX` — keep the product under ~40 |
