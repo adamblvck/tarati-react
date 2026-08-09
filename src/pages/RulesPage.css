@@ -2,7 +2,7 @@
 
 .rules-page {
   font-family: "Archivo", sans-serif;
-  color: #222;
+  color: var(--text);
 }
 
 /* ── Hero ── */
@@ -10,7 +10,7 @@
 .rules-hero {
   padding: 64px 40px 40px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -20,12 +20,12 @@
   font-size: 3rem;
   font-weight: 800;
   margin: 0 0 16px;
-  color: #111;
+  color: var(--text);
 }
 
 .rules-intro {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--text-muted);
   max-width: 520px;
   margin: 0 auto;
   line-height: 1.7;
@@ -40,7 +40,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 16px 24px 32px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -48,7 +48,7 @@
 .rules-toc a {
   font-size: 0.88rem;
   font-weight: 500;
-  color: #888;
+  color: var(--text-faint);
   text-decoration: none;
   padding: 4px 10px;
   border-radius: 4px;
@@ -56,12 +56,12 @@
 }
 
 .rules-toc a:hover {
-  color: #111;
+  color: var(--text);
   background: #f0f0f0;
 }
 
 .toc-dot {
-  color: #ccc;
+  color: var(--text-muted);
   font-size: 0.7rem;
 }
 
@@ -69,13 +69,13 @@
 
 .rule-section {
   padding: 72px 40px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
 .rule-section.alt-bg {
-  background: rgba(250, 250, 250, 0.6);
+  background: var(--surface-2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -109,7 +109,7 @@
   font-size: 1.8rem;
   font-weight: 700;
   margin: 0 0 20px;
-  color: #111;
+  color: var(--text);
   display: flex;
   align-items: baseline;
   gap: 14px;
@@ -119,24 +119,24 @@
   font-family: "Playfair Display", serif;
   font-size: 2.8rem;
   font-weight: 900;
-  color: #ddd;
+  color: var(--text-muted);
   line-height: 1;
 }
 
 .rule-text p {
   font-size: 1.02rem;
   line-height: 1.8;
-  color: #444;
+  color: var(--text);
   margin: 0 0 14px;
 }
 
 .rule-text strong {
-  color: #222;
+  color: var(--text);
 }
 
 .rule-note {
   font-size: 0.92rem !important;
-  color: #888 !important;
+  color: var(--text-faint) !important;
   font-style: italic;
   border-left: 3px solid #e0e0e0;
   padding-left: 14px;
@@ -151,7 +151,7 @@
 .rule-list li {
   font-size: 1.02rem;
   line-height: 1.8;
-  color: #444;
+  color: var(--text);
   margin-bottom: 8px;
 }
 
@@ -165,7 +165,7 @@
 
 .arrow-between {
   font-size: 2rem;
-  color: #bbb;
+  color: var(--text-muted);
   font-weight: 300;
   flex-shrink: 0;
 }
@@ -175,7 +175,7 @@
 .rules-cta {
   padding: 64px 40px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-top: 1px solid rgba(238, 238, 238, 0.6);
@@ -186,7 +186,7 @@
   font-size: 1.8rem;
   font-weight: 700;
   margin: 0 0 20px;
-  color: #111;
+  color: var(--text);
 }
 
 /* Reusing .btn-primary from LandingPage.css */

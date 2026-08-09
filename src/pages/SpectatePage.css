@@ -4,8 +4,8 @@
 .spec-page {
   min-height: 100vh;
   padding: 24px 28px 48px;
-  background: #0f1115;
-  color: #f2f3f5;
+  background: var(--bg);
+  color: var(--text);
   font-family: "Archivo", sans-serif;
 }
 
@@ -16,7 +16,7 @@
   flex-wrap: wrap;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--border);
 }
 
 .spec-header h1 {
@@ -28,26 +28,26 @@
 
 .spec-stats {
   font-size: clamp(0.95rem, 1.4vw, 1.25rem);
-  color: #9aa3ae;
+  color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
 
-.spec-error { color: #ff8a80; }
+.spec-error { color: var(--danger); }
 
 .spec-back {
-  color: #9aa3ae;
+  color: var(--text-faint);
   text-decoration: none;
   font-size: 1.05rem;
 }
-.spec-back:hover { color: #f2f3f5; }
+.spec-back:hover { color: var(--text); }
 
 .spec-empty {
   margin-top: 12vh;
   text-align: center;
-  color: #9aa3ae;
+  color: var(--text-faint);
 }
 .spec-empty p { margin: 0 0 8px; font-size: clamp(1.3rem, 2.6vw, 2rem); }
-.spec-empty-sub { font-size: clamp(1rem, 1.6vw, 1.3rem); color: #6f7883; }
+.spec-empty-sub { font-size: clamp(1rem, 1.6vw, 1.3rem); color: var(--text-faint); }
 
 .spec-grid {
   display: grid;
@@ -65,9 +65,9 @@
 .spec-card {
   display: block;
   padding: 16px 16px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  background: #171a21;
+  background: var(--surface);
   color: inherit;
   text-decoration: none;
   transition: border-color 140ms ease, transform 140ms ease;
@@ -113,15 +113,15 @@ a.spec-card:hover {
   overflow: visible;
 }
 
-.spec-edge { stroke: #39404b; stroke-width: 2; }
-.spec-vertex { fill: #262c36; }
+.spec-edge { stroke: var(--board-line); stroke-width: 2; }
+.spec-vertex { fill: var(--board-vertex); }
 
-.spec-piece { stroke: #0f1115; stroke-width: 1.5; }
-.spec-piece.is-white { fill: #f4f5f7; }
-.spec-piece.is-black { fill: #2b2f38; stroke: #6b7280; }
+.spec-piece { stroke: var(--board-piece-stroke); stroke-width: 1.5; }
+.spec-piece.is-white { fill: var(--board-piece-light); }
+.spec-piece.is-black { fill: var(--board-piece-dark); stroke: var(--board-piece-stroke); }
 
-.spec-rok.is-white { fill: #2b2f38; }
-.spec-rok.is-black { fill: #f4f5f7; }
+.spec-rok.is-white { fill: var(--board-piece-inner-on-light); }
+.spec-rok.is-black { fill: var(--board-piece-inner-on-dark); }
 
 .spec-players {
   margin-top: 12px;
@@ -148,10 +148,10 @@ a.spec-card:hover {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 1px solid #6b7280;
+  border: 1px solid var(--border-strong);
 }
-.spec-dot.is-white { background: #f4f5f7; }
-.spec-dot.is-black { background: #2b2f38; }
+.spec-dot.is-white { background: var(--board-piece-light); }
+.spec-dot.is-black { background: var(--board-piece-dark); }
 
 .spec-name {
   overflow: hidden;
@@ -174,7 +174,7 @@ a.spec-card:hover {
   gap: 12px;
   margin-top: 10px;
   font-size: 0.9rem;
-  color: #9aa3ae;
+  color: var(--text-faint);
 }
 
 .spec-result { text-align: right; }

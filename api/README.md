@@ -124,18 +124,50 @@ created; nothing is left live in the lobby.
 
 ## Event operations
 
+The function runs **unprovisioned** (`min-scale=0`): nothing is billed while
+nobody is playing, and Scaleway starts an instance on the first request. The
+cost is a cold start on that first request — measured at 8–10s — so warm it
+before an audience arrives rather than during.
+
+`FN_ID=7da16d06-30f9-41ae-8c6c-e2f485d6ed91`, region `nl-ams`.
+
 ```bash
-# warm capacity before doors open
-scw function function update <FN_ID> region=nl-ams min-scale=5 memory-limit=2048
+# 1. Minimum viable warm-up. One instance removes the cold start entirely for
+#    the first visitor, and is the smallest thing worth paying for.
+scw function function update $FN_ID region=nl-ams min-scale=1
 
-# afterwards — min-scale keeps instances alive and billing, so don't skip this
-scw function function update <FN_ID> region=nl-ams min-scale=0 max-scale=5 memory-limit=256
+# 2. A busy booth. Bursts still spawn cold instances beyond min-scale, and a
+#    cold one answers slowly, so raise the floor if a queue forms.
+scw function function update $FN_ID region=nl-ams min-scale=3 memory-limit=2048
 
-# clear stuck games both players abandoned (the /watch wall also does this
-# automatically every 30s while anyone is watching)
+# 3. Back to zero afterwards. min-scale keeps instances alive and billing —
+#    at 5 x 2GB that is roughly EUR 10/day, so this is not optional.
+scw function function update $FN_ID region=nl-ams min-scale=0 max-scale=10 memory-limit=1024
+
+# Check what is actually set
+scw function function get $FN_ID region=nl-ams -o json \
+  | jq -c '{status, min_scale, max_scale, memory_limit, cpu_limit}'
+
+# Poke it once so the first real visitor does not pay the cold start
+curl -s https://tarati.blvckstudios.com/api/health
+```
+
+Measured, so you can size this against real numbers rather than guessing:
+
+| | |
+|---|---|
+| cold start (unprovisioned) | 8–10 s on the first request |
+| warm poll (`/games/:id/state`) | p50 0.36 s at 40 concurrent |
+| sustained load through the proxy | 11 req/s (~40 players) completely clean |
+| pool ceiling | `max-scale` x `PGPOOL_MAX` — keep the product under ~40 |
+
+Clearing games both players walked away from (the `/watch` wall also does this
+by itself every 30s while anyone is watching):
+
+```bash
 curl -X POST https://tarati.blvckstudios.com/api/v1/internal/games/sweep-timeouts \
      -H "x-cron-secret: $CRON_SWEEP_SECRET"
 ```
 
-`TURN_TIMEOUT_SECONDS` and `PGPOOL_MAX` are plain environment variables, so both
-can be changed live from the console without a rebuild.
+`TURN_TIMEOUT_SECONDS`, `PGPOOL_MAX` and `SPECTATOR_MODE` are plain environment
+variables, so all three change live from the console without a rebuild.

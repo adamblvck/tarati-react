@@ -479,6 +479,7 @@ const GamePage = () => {
 						isValidMove={AI.isLegalMove}
 						applyMove={applyMove}
 						promotions={promotions}
+						flipped={playerColor === 'BLACK'}
 						ApplyMoveAI={AI.ApplyMoveAI}
 					/>
 					{showBoardRestart ? (

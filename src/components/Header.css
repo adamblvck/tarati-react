@@ -4,8 +4,8 @@
   justify-content: space-between;
   padding: 0 40px;
   height: 64px;
-  background: rgba(255, 255, 255, 0.62);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--bg-glass);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -18,7 +18,7 @@
 .header-logo {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111;
+  color: var(--text);
   text-decoration: none;
   letter-spacing: 0.04em;
 }
@@ -33,7 +33,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   text-decoration: none;
-  color: #666;
+  color: var(--text-muted);
   padding: 8px 20px;
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
@@ -41,13 +41,13 @@
 }
 
 .nav-tab:hover {
-  color: #111;
-  background: rgba(245, 245, 245, 0.6);
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 .nav-tab.active {
-  color: #111;
-  background: rgba(240, 240, 240, 0.65);
+  color: var(--text);
+  background: var(--surface-3);
   font-weight: 600;
 }
 
@@ -61,27 +61,27 @@
 .header-account-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #111;
+  color: var(--text);
   text-decoration: none;
   padding: 8px 14px;
   border-radius: 6px;
   transition: background 0.2s;
 }
 .header-account-name:hover {
-  background: rgba(245, 245, 245, 0.6);
+  background: var(--surface-2);
 }
 
 .header-signout {
   font-family: "Archivo", sans-serif;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-muted);
   background: none;
   border: none;
   cursor: pointer;
   padding: 8px 6px;
 }
 .header-signout:hover {
-  color: #111;
+  color: var(--text);
 }
 
 .header-signup {
@@ -89,8 +89,8 @@
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  color: #fff;
-  background: #111;
+  color: var(--text-on-inv);
+  background: var(--surface-inv);
   padding: 8px 18px;
   border-radius: 6px;
   transition: opacity 0.2s;
@@ -147,3 +147,31 @@
     row-gap: 4px;
   }
 }
+
+/* Theme toggle. Opts out of the global `button` look, which carries a 10/20px
+   margin and a glass background meant for in-game controls. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.theme-toggle svg { display: block; }

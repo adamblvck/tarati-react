@@ -319,6 +319,7 @@ const OnlineGamePage = () => {
             isValidMove={wrappedIsValidMove}
             applyMove={handleMove}
             promotions={promotions}
+            flipped={myColor === "BLACK"}
             ApplyMoveAI={AI.ApplyMoveAI}
           />
         </div>

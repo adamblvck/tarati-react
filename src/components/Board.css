@@ -46,11 +46,11 @@
 }
 
 .vertex.is-over circle {
-	fill: lightgreen;
+	fill: var(--board-drop);
 }
 
 .vertex.can-drop circle {
-	fill: yellow;
+	fill: var(--accent);
 }
 
 .board-svg {
@@ -87,7 +87,7 @@
 	max-width: min(94vw, 560px);
 	padding: 12px 16px;
 	border-radius: 18px;
-	background: rgba(255, 255, 255, 0.78);
+	background: var(--bg-glass);
 	backdrop-filter: blur(16px) saturate(130%);
 	-webkit-backdrop-filter: blur(16px) saturate(130%);
 	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
@@ -103,7 +103,7 @@
 	font-family: "Archivo", sans-serif;
 	font-size: 0.9rem;
 	font-weight: 600;
-	color: #333;
+	color: var(--text);
 	text-align: center;
 }
 
@@ -112,15 +112,33 @@
 	/* 44px min target: these get tapped on phones at a booth. */
 	min-height: 44px;
 	padding: 10px 22px;
-	border: 1px solid rgba(0, 0, 0, 0.45);
+	border: 1px solid var(--border-strong);
 	border-radius: 999px;
 	font-family: "Archivo", sans-serif;
 	font-weight: 700;
-	color: #1b1b1b;
-	background: #f5b301;
+	color: var(--accent-ink);
+	background: var(--accent);
 	cursor: pointer;
 	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
 }
 
 .promote-btn:hover { filter: brightness(1.06); }
 .promote-btn:active { transform: translateY(1px); }
+/* --- Board colours, driven by the theme -------------------------------- */
+
+.board-edge { stroke: var(--board-line); }
+.vertex-dot { fill: var(--board-vertex); }
+
+.vertex-label {
+	fill: var(--board-label);
+	/* The halo is what keeps a label legible where it crosses an edge; it has
+	   to match the page background, not be permanently white. */
+	stroke: var(--board-label-halo);
+}
+
+.piece.is-white { fill: var(--board-piece-light); stroke: var(--board-piece-stroke); }
+.piece.is-black { fill: var(--board-piece-dark);  stroke: var(--board-piece-dark-stroke); }
+.piece-rok.is-white { fill: var(--board-piece-inner-on-light); }
+.piece-rok.is-black { fill: var(--board-piece-inner-on-dark); }
+
+.vertex.is-over .vertex-dot { fill: var(--board-drop); }

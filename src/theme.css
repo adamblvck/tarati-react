@@ -1,0 +1,125 @@
+/* ───── Theme tokens ─────────────────────────────────────────────────────────
+ *
+ * Every colour in the app resolves through one of these. `data-theme` is always
+ * written explicitly onto <html> — the inline script in public/index.html sets
+ * it before first paint, resolving the system preference there — so the dark
+ * values live in exactly one place instead of being duplicated between an
+ * attribute selector and a prefers-color-scheme block.
+ *
+ * Names describe the ROLE, not the shade, which is what lets one declaration
+ * serve both themes: `--text-faint` is a mid grey on light and a pale grey on
+ * dark, and the rule that uses it does not need to know which.
+ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f7f7f8;
+  --bg-glass: rgba(255, 255, 255, 0.62);
+  --bg-glass-soft: rgba(255, 255, 255, 0.5);
+
+  --surface: #ffffff;
+  --surface-2: rgba(245, 245, 245, 0.6);
+  --surface-3: rgba(240, 240, 240, 0.65);
+  /* A panel deliberately opposite to the page — dark chips on a light page. */
+  --surface-inv: #141414;
+  --surface-inv-2: #1f1f1f;
+
+  --text: #111111;
+  --text-muted: #666666;
+  --text-faint: #999999;
+  --text-on-inv: #f4f5f7;
+
+  --border: rgba(0, 0, 0, 0.12);
+  --border-soft: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.45);
+
+  --shadow-sm: 0 4px 12px rgba(15, 15, 20, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 15, 20, 0.08);
+  --shadow-lg: 0 14px 40px rgba(15, 15, 20, 0.14);
+
+  --accent: #f5b301;
+  --accent-ink: #1b1b1b;
+  --danger: #b3261e;
+  --danger-soft: rgba(179, 38, 30, 0.5);
+  /* Red stays red in both themes, so its foreground is fixed. */
+  --text-on-danger: #ffffff;
+  --ok: #2e7d32;
+  --link: #2b6cb0;
+
+  /* Board. White and black pieces stay recognisably white and black in both
+     themes — that is game meaning, not decoration. What flips is the surface
+     they sit on, their outline, and the halo behind the vertex labels. */
+  --board-line: #8a8a8a;
+  --board-vertex: #8a8a8a;
+  --board-piece-light: #ffffff;
+  --board-piece-dark: #1b1b1b;
+  --board-piece-stroke: #222222;
+  --board-piece-dark-stroke: #222222;
+  --board-piece-inner-on-light: #1b1b1b;
+  --board-piece-inner-on-dark: #ffffff;
+  --board-label: #333333;
+  --board-label-halo: #ffffff;
+  --board-drop: #4caf50;
+
+  /* The floating Laws-of-Form marks behind everything. */
+  --distinction-ink: 0, 0, 0;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0f1115;
+  --bg-glass: rgba(20, 23, 29, 0.72);
+  --bg-glass-soft: rgba(20, 23, 29, 0.55);
+
+  --surface: #171a21;
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --surface-3: rgba(255, 255, 255, 0.09);
+  --surface-inv: #f0f1f3;
+  --surface-inv-2: #e2e4e8;
+
+  --text: #f2f3f5;
+  --text-muted: #9aa3ae;
+  --text-faint: #79828d;
+  --text-on-inv: #14161a;
+
+  --border: rgba(255, 255, 255, 0.12);
+  --border-soft: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.3);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.6);
+
+  --accent: #f5b301;
+  --accent-ink: #1b1b1b;
+  --danger: #c8402f;
+  --danger-soft: rgba(224, 104, 90, 0.45);
+  --ok: #6ee787;
+  --link: #7fb3ec;
+
+  --board-line: #39404b;
+  --board-vertex: #4b5461;
+  --board-piece-light: #f2f3f5;
+  --board-piece-dark: #23262d;
+  --board-piece-stroke: #05070a;
+  --board-piece-dark-stroke: #737d8c;
+  --board-piece-inner-on-light: #23262d;
+  --board-piece-inner-on-dark: #f2f3f5;
+  --board-label: #aeb6c0;
+  --board-label-halo: #0f1115;
+  --board-drop: #6ee787;
+
+  --distinction-ink: 255, 255, 255;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Themes swap instantly; a transition here would make every surface on the page
+   cross-fade at slightly different times and read as a glitch. Only the small
+   interactive bits animate, and they declare it themselves. */

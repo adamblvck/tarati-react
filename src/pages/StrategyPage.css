@@ -5,24 +5,24 @@
   max-width: 48rem;
   margin: 2.5rem auto;
   padding: 2.5rem 2.25rem 4rem;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-glass);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-radius: 10px;
   font-family: "Archivo", sans-serif;
-  color: #1a1a1a;
+  color: var(--text);
 }
 
 .strategy-hero h1 {
   font-size: 2.2rem;
   margin: 0 0 0.75rem;
-  color: #111;
+  color: var(--text);
 }
 
 .strategy-hero p {
   max-width: 38rem;
   line-height: 1.55;
-  color: #444;
+  color: var(--text);
 }
 
 .strategy-toc {
@@ -51,9 +51,9 @@
 }
 
 .strategy-tab.active {
-  background: #c0392b;
+  background: var(--danger);
   border-color: #c0392b;
-  color: #fff;
+  color: var(--text-on-inv);
 }
 
 .strategy-prose {
@@ -66,7 +66,7 @@
 .strategy-prose h1 {
   font-size: 1.8rem;
   margin: 0 0 1rem;
-  color: #111;
+  color: var(--text);
 }
 
 .strategy-prose h2 {

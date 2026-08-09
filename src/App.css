@@ -46,11 +46,11 @@
 /* ───── Shared: buttons & form elements ───── */
 
 button {
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--bg-glass);
+  color: var(--text);
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
   border: none;
-  color: black;
   padding: 10px;
   text-align: center;
   text-decoration: none;
@@ -58,9 +58,7 @@ button {
   font-size: 16px;
   margin: 10px 20px;
   cursor: pointer;
-  /* border-radius: 7px; */
-  /* background: linear-gradient(45deg, black, #c32424); */
-  border: solid 1px rgba(0, 0, 0, 0.7);
+  border: solid 1px var(--border-strong);
   border-top-width: 1px;
   border-left-width: 0px;
   border-right-width: 1px;
@@ -69,11 +67,11 @@ button {
 }
 
 .form {
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--bg-glass);
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
   border: none;
-  color: black;
+  color: var(--text);
   padding: 10px 0px;
   text-align: center;
   text-decoration: none;
@@ -83,7 +81,7 @@ button {
   cursor: pointer;
   /* border-radius: 7px; */
   /* background: linear-gradient(45deg, black, #c32424); */
-  border: solid 1px rgba(0, 0, 0, 0.7);
+  border: solid 1px var(--border-strong);
   border-top-width: 1px;
   border-left-width: 0px;
   border-right-width: 1px;
@@ -100,6 +98,6 @@ button {
 }
 
 button:disabled {
-  color: #999;
+  color: var(--text-faint);
   cursor: not-allowed;
 }

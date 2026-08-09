@@ -2,7 +2,7 @@
 
 .landing {
   font-family: "Archivo", sans-serif;
-  color: #222;
+  color: var(--text);
   overflow-x: hidden;
 }
 
@@ -18,7 +18,7 @@
   background:
     radial-gradient(circle at 20% 50%, rgba(200,200,200,0.06) 0%, transparent 50%),
     radial-gradient(circle at 80% 30%, rgba(150,150,150,0.04) 0%, transparent 50%),
-    rgba(255, 255, 255, 0.55);
+    var(--bg-glass-soft);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -32,7 +32,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: #999;
+  color: var(--text-faint);
   margin: 0 0 8px;
 }
 
@@ -42,7 +42,7 @@
   font-weight: 700;
   line-height: 1.15;
   margin: 0 0 4px;
-  color: #111;
+  color: var(--text);
 }
 
 .hero-game-name {
@@ -51,14 +51,14 @@
   font-weight: 900;
   letter-spacing: 0.06em;
   margin: 0 0 24px;
-  color: #111;
+  color: var(--text);
   line-height: 1;
 }
 
 .hero-description {
   font-size: 1.05rem;
   line-height: 1.7;
-  color: #555;
+  color: var(--text-muted);
   margin: 0 0 32px;
 }
 
@@ -72,14 +72,14 @@
 
 .hero-proof {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--text-faint);
   margin: 20px 0 0;
   letter-spacing: 0.04em;
 }
 
 .hero-proof em {
   font-style: italic;
-  color: #777;
+  color: var(--text-muted);
 }
 
 /* ── Buttons ── */
@@ -91,8 +91,8 @@
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: #fff;
-  background: rgba(17, 17, 17, 0.85);
+  color: var(--text-on-inv);
+  background: var(--surface-inv);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-radius: 8px;
@@ -118,8 +118,8 @@
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: #111;
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--text);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1.5px solid rgba(204, 204, 204, 0.7);
@@ -184,7 +184,7 @@
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 20px;
-  color: #111;
+  color: var(--text);
 }
 
 /* About */
@@ -193,7 +193,7 @@
   padding: 80px 40px;
   display: flex;
   justify-content: center;
-  background: rgba(250, 250, 250, 0.6);
+  background: var(--surface-2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -205,7 +205,7 @@
 .about-content p {
   font-size: 1.05rem;
   line-height: 1.8;
-  color: #444;
+  color: var(--text);
   margin: 0 0 16px;
 }
 
@@ -214,7 +214,7 @@
 .symbols-section {
   padding: 80px 40px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -224,7 +224,7 @@
   margin: 0 auto 48px;
   font-size: 1.05rem;
   line-height: 1.7;
-  color: #555;
+  color: var(--text-muted);
 }
 
 .symbols-grid {
@@ -239,7 +239,7 @@
   padding: 32px 16px;
   border: 1px solid rgba(232, 232, 232, 0.7);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--bg-glass-soft);
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
   transition: box-shadow 0.2s, transform 0.2s;
@@ -254,7 +254,7 @@
   font-family: "Playfair Display", serif;
   font-size: 2.8rem;
   font-weight: 900;
-  color: #111;
+  color: var(--text);
   line-height: 1;
   margin-bottom: 8px;
 }
@@ -262,14 +262,14 @@
 .symbol-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 4px;
   letter-spacing: 0.02em;
 }
 
 .symbol-desc {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-faint);
   font-style: italic;
 }
 
@@ -282,7 +282,7 @@
   background: rgba(17, 17, 17, 0.88);
   backdrop-filter: blur(16px) saturate(130%);
   -webkit-backdrop-filter: blur(16px) saturate(130%);
-  color: #ddd;
+  color: var(--text-muted);
 }
 
 .lof-content {
@@ -290,22 +290,22 @@
 }
 
 .lof-content .section-heading {
-  color: #fff;
+  color: var(--text-on-inv);
 }
 
 .lof-content p {
   font-size: 1.05rem;
   line-height: 1.8;
-  color: #bbb;
+  color: var(--text-muted);
   margin: 0 0 24px;
 }
 
 .lof-content strong {
-  color: #fff;
+  color: var(--text-on-inv);
 }
 
 .lof-content em {
-  color: #ccc;
+  color: var(--text-muted);
 }
 
 .lof-links {
@@ -331,7 +331,7 @@
 .cta-section {
   padding: 80px 40px;
   text-align: center;
-  background: rgba(250, 250, 250, 0.6);
+  background: var(--surface-2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -341,12 +341,12 @@
   font-size: 2.2rem;
   font-weight: 700;
   margin: 0 0 12px;
-  color: #111;
+  color: var(--text);
 }
 
 .cta-section p {
   font-size: 1.05rem;
-  color: #666;
+  color: var(--text-muted);
   margin: 0 0 32px;
 }
 
@@ -360,7 +360,7 @@
   padding: 32px 40px;
   text-align: center;
   border-top: 1px solid rgba(232, 232, 232, 0.6);
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-glass);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -368,12 +368,12 @@
 .landing-footer p {
   font-family: "Playfair Display", serif;
   font-size: 0.85rem;
-  color: #999;
+  color: var(--text-faint);
   margin: 0;
 }
 
 .landing-footer a {
-  color: #666;
+  color: var(--text-muted);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;

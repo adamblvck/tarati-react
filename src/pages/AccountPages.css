@@ -4,7 +4,7 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 48px 20px 80px;
-  color: #eaeaea;
+  color: var(--text-muted);
 }
 
 .acct-narrow {
@@ -13,7 +13,7 @@
 
 .acct-card {
   background: rgba(23, 23, 23, 0.86);
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 28px;
   backdrop-filter: blur(6px);
@@ -23,7 +23,7 @@
   font-size: 26px;
   font-weight: 700;
   margin: 0 0 6px;
-  color: #fff;
+  color: var(--text);
 }
 
 .acct-subtitle {
@@ -41,23 +41,23 @@
 
 .acct-field label {
   font-size: 13px;
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .acct-field input,
 .acct-field select {
-  background: #101010;
-  border: 1px solid #333;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 11px 12px;
-  color: #fff;
+  color: var(--text);
   font-size: 15px;
   outline: none;
 }
 
 .acct-field input:focus,
 .acct-field select:focus {
-  border-color: #777;
+  border-color: var(--border);
 }
 
 .acct-btn {
@@ -65,8 +65,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #fff;
-  color: #111;
+  background: var(--surface-inv);
+  color: var(--text-on-inv);
   border: none;
   border-radius: 8px;
   padding: 12px 18px;
@@ -82,19 +82,19 @@
 
 .acct-btn.secondary {
   background: transparent;
-  color: #eaeaea;
-  border: 1px solid #3a3a3a;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 .acct-btn.danger {
-  background: #b3261e;
-  color: #fff;
+  background: var(--danger);
+  color: var(--text-on-danger);
 }
 
 .acct-btn.google {
-  background: #1a1a1a;
-  color: #fff;
-  border: 1px solid #3a3a3a;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .acct-btn.auto { width: auto; }
@@ -103,7 +103,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #666;
+  color: var(--text-muted);
   font-size: 12px;
   margin: 18px 0;
 }
@@ -150,7 +150,7 @@
   gap: 10px;
   align-items: flex-start;
   font-size: 13px;
-  color: #bbb;
+  color: var(--text-muted);
   margin-bottom: 18px;
 }
 .acct-consent input { margin-top: 2px; }
@@ -173,10 +173,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--border);
   border-radius: 10px;
   margin-bottom: 10px;
-  background: #141414;
+  background: var(--surface);
 }
 .lobby-item .meta { display: flex; flex-direction: column; gap: 2px; }
 .lobby-item .meta strong { color: #fff; }
@@ -187,9 +187,9 @@
   flex: 1;
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid #333;
-  background: #101010;
-  color: #ddd;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
   cursor: pointer;
 }
 .color-choice button.active { border-color: #fff; background: #222; }
@@ -200,12 +200,12 @@
   display: flex;
   gap: 8px;
   margin-bottom: 22px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border);
 }
 .settings-tab {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-faint);
   padding: 10px 4px;
   margin-right: 16px;
   cursor: pointer;
@@ -220,10 +220,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--border);
   border-radius: 10px;
   margin-bottom: 10px;
-  background: #141414;
+  background: var(--surface);
   text-decoration: none;
   color: inherit;
 }
@@ -233,7 +233,7 @@
   padding: 3px 9px;
   border-radius: 999px;
   background: #222;
-  color: #bbb;
+  color: var(--text-muted);
   text-transform: capitalize;
 }
 .replay-row .badge.win { background: rgba(46,125,50,0.25); color: #a5d6a7; }
@@ -254,9 +254,9 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: #141414;
+  background: var(--surface);
 }
 .online-player.active-turn { border-color: #fff; }
 .online-player .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #555; }
@@ -266,16 +266,16 @@
 .online-clock.low { color: #ff6b6b; }
 
 .invite-box {
-  border: 1px dashed #3a3a3a;
+  border: 1px dashed var(--border);
   border-radius: 10px;
   padding: 14px;
-  background: #121212;
+  background: var(--surface-2);
 }
 .invite-code {
   font-size: 28px;
   letter-spacing: 4px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text);
   text-align: center;
   margin: 6px 0 12px;
 }

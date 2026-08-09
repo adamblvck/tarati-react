@@ -27,9 +27,12 @@ const Vertex = ({ vertexId, checker, position, canDrop, vWidth}, ref) => {
 				scale: 1
 			}}	
 		>
-			<circle r={vWidth/12} fill={style.color ?? "#888"}  cx={position.x} cy={position.y} />
-			
-			<text fontSize={vWidth/6} dominantBaseline="middle" paintOrder="stroke" strokeLineJoin="round" strokeWidth={5} stroke={'#ffffff'} x={position.x+vWidth/6} y={position.y+vWidth/6}>{vertexId}</text>
+			<circle className="vertex-dot" r={vWidth/12} cx={position.x} cy={position.y} />
+
+			{/* Colours come from CSS so the board follows the theme; the halo
+			    behind the label has to flip with the background or the text
+			    becomes unreadable in dark mode. */}
+			<text className="vertex-label" fontSize={vWidth/6} dominantBaseline="middle" paintOrder="stroke" strokeLineJoin="round" strokeWidth={5} x={position.x+vWidth/6} y={position.y+vWidth/6}>{vertexId}</text>
 		</g>
         
     );
@@ -56,20 +59,23 @@ const DraggableChecker = ({ id, color, isUpgraded, position, vWidth }) => {
             {...attributes}
         >
             <circle
+                className={`piece ${color === 'WHITE' ? 'is-white' : 'is-black'}`}
                 cx={position.x}
                 cy={position.y}
                 r={vWidth/6}
-                fill={color}
-                stroke="#222"
             />
 			{isUpgraded ?
-				<circle cx={position.x} cy={position.y} r={vWidth/9} fill={color==='WHITE'?'BLACK':'WHITE'} 
-			/> : undefined }
+				<circle
+					className={`piece-rok ${color === 'WHITE' ? 'is-white' : 'is-black'}`}
+					cx={position.x}
+					cy={position.y}
+					r={vWidth/9}
+				/> : undefined }
         </g>
     );
 };
 
-const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize, promotions = [] }, ref) => {
+const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize, promotions = [], flipped = false }, ref) => {
    
 	const touchSensor = useSensor(TouchSensor, {
         // Short press-and-hold before a drag starts, so scrolling the page
@@ -128,8 +134,8 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 				>
 					{/* Draw Edges */}
 					{gameBoard.edges.map(([from, to], index) => {
-						const fromPos = Data.getPosition(from, {w:boardSize/aspect,h:boardSize}, vWidth);
-						const toPos = Data.getPosition(to, {w:boardSize/aspect,h:boardSize}, vWidth);
+						const fromPos = Data.getPosition(from, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
+						const toPos = Data.getPosition(to, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
 						return (
 							<line
 								key={`edge-${index}`}
@@ -137,7 +143,7 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 								y1={fromPos.y}
 								x2={toPos.x}
 								y2={toPos.y}
-								stroke="#888"
+								className="board-edge"
 								strokeWidth="2"
 							/>
 						);
@@ -149,7 +155,7 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 							key={vertexId}
 							vertexId={vertexId}
 							checker={gameState.checkers[vertexId]}
-							position={Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth)}
+							position={Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth, flipped)}
 							canDrop={false} //draggedChecker && isValidMove(draggedChecker, vertexId)}
 							vWidth={vWidth}
 						/>
@@ -158,7 +164,7 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 					{/* Highlight pieces that can be promoted in place (§6.3).
 					    pointerEvents:none so this never intercepts a drag. */}
 					{promotions.map((vertexId) => {
-						const p = Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth);
+						const p = Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
 						return (
 							<circle
 								key={`promote-ring-${vertexId}`}
@@ -178,7 +184,7 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 							id={id}
 							color={checker.color}
 							isUpgraded={checker.isUpgraded}
-							position={Data.getPosition(id, {w:boardSize/aspect,h:boardSize}, vWidth)}
+							position={Data.getPosition(id, {w:boardSize/aspect,h:boardSize}, vWidth, flipped)}
 							vWidth={vWidth}
 						/>
 					))}
