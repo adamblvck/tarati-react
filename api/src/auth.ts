@@ -48,6 +48,33 @@ export const auth = betterAuth({
   session: {
     expiresIn: THIRTY_ONE_DAYS_IN_SECONDS,
     updateAge: 60 * 60 * 24,
+    // Every authenticated request resolves the session, and without this that
+    // is a database round trip per poll — with players polling every couple of
+    // seconds it becomes the dominant cost and requests queue on the pool.
+    // The signed snapshot in the cookie removes the lookup almost entirely.
+    // Cost: a revoked session stays usable until the snapshot expires, which
+    // for a two-minute window is an acceptable trade here.
+    cookieCache: {
+      enabled: true,
+      maxAge: 120,
+    },
+  },
+  // Better Auth's defaults are per-IP and, for the credential endpoints, only
+  // 3 requests per 10 seconds. Everyone on one venue's wifi shares a single
+  // NAT'd IP, so at an event the fourth person to sign up in any ten-second
+  // window is told "Too many requests" — which reads as "the site is broken".
+  // These limits still stop brute force (a password attack needs orders of
+  // magnitude more than 60 attempts a minute) while letting a queue of people
+  // sign up shoulder to shoulder.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 300,
+    customRules: {
+      "/sign-up/email": { window: 60, max: 60 },
+      "/sign-in/email": { window: 60, max: 60 },
+      "/get-session": { window: 60, max: 600 },
+    },
   },
   emailAndPassword: {
     enabled: true,

@@ -2,6 +2,16 @@
 // which is how the suite runs several "dev accounts" concurrently in one
 // process without a browser.
 
+// Point this at the app origin (https://tarati.blvckstudios.com) to exercise
+// the whole production path including the Netlify /api/* proxy.
+//
+// For repeated back-to-back runs, use the Scaleway function domain directly
+// instead. The suite fires several hundred unpaced requests in well under a
+// minute, and Netlify's edge answers that burst with a 403 HTML block page —
+// which shows up as a wave of confusing "returned non-JSON (403)" failures.
+// Measured: sustained 11 req/s (≈40 players polling) through the proxy is
+// completely clean, so this is a property of the test's firing pattern, not
+// something real traffic reproduces.
 export const BASE = (process.env.TARATI_API_URL ?? "").replace(/\/$/, "");
 
 // Better Auth rejects state-changing requests whose Origin isn't trusted
@@ -54,7 +64,10 @@ export function makeJar(label = "jar") {
       } catch {
         const err = new Error(
           `${label}: ${path} returned non-JSON (${res.status}). ` +
-            `First 120 chars: ${text.slice(0, 120)}`
+            `server=${res.headers.get("server")} ` +
+            `via=${res.headers.get("x-nf-request-id") ? "netlify" : "direct"} ` +
+            `title=${(text.match(/<title>([^<]*)<\/title>/) ?? [])[1] ?? "?"} ` +
+            `body=${text.slice(0, 200).replace(/\s+/g, " ")}`
         );
         err.status = res.status;
         throw err;

@@ -270,9 +270,30 @@ gameRoutes.get("/mine", async (c) => {
     .orderBy(desc(games.updatedAt))
     .limit(200);
 
+  // One lookup for every opponent in the list rather than a query per row.
+  // At 200 games that N+1 was 200 extra round trips on a page a player opens
+  // just to see their history, and it dominated the endpoint's response time.
+  const opponentIds = [
+    ...new Set(
+      rows.flatMap((g) => [g.whitePlayerId, g.blackPlayerId]).filter(Boolean) as string[]
+    ),
+  ];
+  const nameRows = opponentIds.length
+    ? await db
+        .select({ id: user.id, name: user.name })
+        .from(user)
+        .where(inArray(user.id, opponentIds))
+    : [];
+  const nameById = new Map(nameRows.map((r) => [r.id, r.name]));
+  const playerRef = (id: string | null) =>
+    id ? { id, name: nameById.get(id) ?? "Deleted player" } : null;
+
   const list = await Promise.all(
     rows.map(async (game) => {
-      const players = await playerNames(game);
+      const players = {
+        white: playerRef(game.whitePlayerId),
+        black: playerRef(game.blackPlayerId),
+      };
       return {
         id: game.id,
         name: game.name,

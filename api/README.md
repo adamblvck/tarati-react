@@ -91,3 +91,51 @@ function). The deploy script builds, zips `dist` + prod deps, deploys to
 `GET /api/v1/games/:id/state` · `POST /api/v1/games/:id/moves` ·
 `POST /api/v1/games/:id/resign` · `POST /api/v1/games/:id/abort` ·
 `GET /api/v1/games/:id/replay` · `POST /api/v1/internal/games/sweep-timeouts`
+
+## Integration tests
+
+End-to-end tests against a running API and a real database. Skipped entirely
+when `TARATI_API_URL` is unset, so `npm run api:test` stays a fast, DB-free
+engine drift guard.
+
+```bash
+# against local dev (tunnel + npm run dev must be up)
+TARATI_API_URL=http://localhost:8787 TARATI_ORIGIN=http://localhost:3000 \
+  npm --prefix api run test:integration
+
+# against production, through the Netlify /api/* proxy (the full real path)
+TARATI_API_URL=https://tarati.blvckstudios.com npm --prefix api run test:integration
+
+# for repeated back-to-back runs, go straight to the function
+TARATI_API_URL=https://<fn>.functions.fnc.nl-ams.scw.cloud \
+  TARATI_ORIGIN=https://tarati.blvckstudios.com \
+  npm --prefix api run test:integration
+```
+
+The suite fires several hundred unpaced requests in under a minute. Netlify's
+edge answers that burst with a 403 HTML page, which surfaces as a wave of
+"returned non-JSON (403)" failures — hence the third form above. Real traffic
+does not reproduce it: sustained 11 req/s through the proxy (roughly 40 players
+polling every 2.5s) measured completely clean.
+
+Test accounts are `dev-a`/`dev-b`/`dev-c@example.com`, created idempotently, so
+the suite is re-runnable forever. Teardown aborts or resigns every game it
+created; nothing is left live in the lobby.
+
+## Event operations
+
+```bash
+# warm capacity before doors open
+scw function function update <FN_ID> region=nl-ams min-scale=5 memory-limit=2048
+
+# afterwards — min-scale keeps instances alive and billing, so don't skip this
+scw function function update <FN_ID> region=nl-ams min-scale=0 max-scale=5 memory-limit=256
+
+# clear stuck games both players abandoned (the /watch wall also does this
+# automatically every 30s while anyone is watching)
+curl -X POST https://tarati.blvckstudios.com/api/v1/internal/games/sweep-timeouts \
+     -H "x-cron-secret: $CRON_SWEEP_SECRET"
+```
+
+`TURN_TIMEOUT_SECONDS` and `PGPOOL_MAX` are plain environment variables, so both
+can be changed live from the console without a rebuild.
