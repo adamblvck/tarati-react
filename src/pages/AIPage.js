@@ -218,7 +218,7 @@ const AIPage = () => {
                 <li>Depth: {profile.depth}</li>
                 <li>Max ms: {profile.maxMs ?? 'none'}</li>
                 <li>Max nodes: {profile.maxNodes ?? 'none'}</li>
-                <li>Root probe: {profile.rootProbeNodes}</li>
+                <li>Temperature: {profile.temperature}</li>
                 <li>Top-k: {profile.stochasticTopK}</li>
               </ul>
             </div>

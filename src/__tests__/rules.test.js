@@ -330,3 +330,58 @@ describe('AI integration', () => {
     expect(moves).toBeGreaterThan(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Legality predicate used by the UI (§6.3 in-place promotion)
+//
+// `isValidMove` implements §3, which has no notion of a move that starts and
+// ends on the same vertex. The UI must therefore ask `isLegalMove`, or a player
+// whose only legal continuation is a dead-piece promotion has no way to move
+// and loses on the clock.
+// ---------------------------------------------------------------------------
+
+describe('isLegalMove and getPromotionMoves', () => {
+  // Reached in real play; White (to move) has no ordinary move at all.
+  const promotionOnly = makeState(
+    { D4: W, D3: Wu, D2: B, C4: B, B6: B, C5: Bu, C7: Bu, B4: Bu },
+    'WHITE'
+  );
+
+  const opening = makeState(
+    { C1: W, C2: W, D1: W, D2: W, C7: B, C8: B, D3: B, D4: B },
+    'WHITE'
+  );
+
+  test('the fixture really is promotion-only', () => {
+    const moves = AI.getAllPossibleMoves(promotionOnly);
+    expect(moves.length).toBeGreaterThan(0);
+    expect(moves.every((m) => m.from === m.to)).toBe(true);
+  });
+
+  test('getPromotionMoves surfaces the forced promotion', () => {
+    expect(AI.getPromotionMoves(promotionOnly)).toEqual(['D4']);
+  });
+
+  test('isLegalMove accepts the promotion that isValidMove rejects', () => {
+    expect(AI.isValidMove(promotionOnly, 'D4', 'D4')).toBe(false);
+    expect(AI.isLegalMove(promotionOnly, 'D4', 'D4')).toBe(true);
+  });
+
+  test('no promotions are offered when an ordinary move exists', () => {
+    expect(AI.getPromotionMoves(opening)).toEqual([]);
+    expect(AI.isLegalMove(opening, 'C1', 'C1')).toBe(false);
+  });
+
+  test('isLegalMove agrees with isValidMove on every ordinary move', () => {
+    // Swapping the UI predicate must not change any normal move's legality.
+    const states = [opening, promotionOnly];
+    for (const state of states) {
+      for (const from of gameBoard.vertices) {
+        for (const to of gameBoard.vertices) {
+          if (from === to) continue;
+          expect(AI.isLegalMove(state, from, to)).toBe(AI.isValidMove(state, from, to));
+        }
+      }
+    }
+  });
+});

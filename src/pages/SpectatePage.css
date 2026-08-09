@@ -1,0 +1,185 @@
+/* Spectator wall — built to be projected and read from across a room:
+   dark ground, oversized type, no chrome competing with the boards. */
+
+.spec-page {
+  min-height: 100vh;
+  padding: 24px 28px 48px;
+  background: #0f1115;
+  color: #f2f3f5;
+  font-family: "Archivo", sans-serif;
+}
+
+.spec-header {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.spec-header h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.spec-stats {
+  font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+  color: #9aa3ae;
+  font-variant-numeric: tabular-nums;
+}
+
+.spec-error { color: #ff8a80; }
+
+.spec-back {
+  color: #9aa3ae;
+  text-decoration: none;
+  font-size: 1.05rem;
+}
+.spec-back:hover { color: #f2f3f5; }
+
+.spec-empty {
+  margin-top: 12vh;
+  text-align: center;
+  color: #9aa3ae;
+}
+.spec-empty p { margin: 0 0 8px; font-size: clamp(1.3rem, 2.6vw, 2rem); }
+.spec-empty-sub { font-size: clamp(1rem, 1.6vw, 1.3rem); color: #6f7883; }
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.spec-solo {
+  display: flex;
+  justify-content: center;
+}
+.spec-solo .spec-card { max-width: 760px; width: 100%; }
+
+.spec-card {
+  display: block;
+  padding: 16px 16px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: #171a21;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+a.spec-card:hover {
+  border-color: rgba(245, 179, 1, 0.6);
+  transform: translateY(-2px);
+}
+
+.spec-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.spec-title {
+  font-weight: 700;
+  font-size: clamp(1rem, 1.3vw, 1.35rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spec-badge {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.spec-badge.is-live { background: rgba(76, 217, 100, 0.16); color: #6ee787; }
+.spec-badge.is-expired { background: rgba(255, 138, 128, 0.16); color: #ff8a80; }
+.spec-badge.is-done { background: rgba(255, 255, 255, 0.1); color: #9aa3ae; }
+
+.spec-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.spec-edge { stroke: #39404b; stroke-width: 2; }
+.spec-vertex { fill: #262c36; }
+
+.spec-piece { stroke: #0f1115; stroke-width: 1.5; }
+.spec-piece.is-white { fill: #f4f5f7; }
+.spec-piece.is-black { fill: #2b2f38; stroke: #6b7280; }
+
+.spec-rok.is-white { fill: #2b2f38; }
+.spec-rok.is-black { fill: #f4f5f7; }
+
+.spec-players {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.spec-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+}
+
+.spec-player.is-turn {
+  background: rgba(245, 179, 1, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(245, 179, 1, 0.35);
+}
+
+.spec-dot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid #6b7280;
+}
+.spec-dot.is-white { background: #f4f5f7; }
+.spec-dot.is-black { background: #2b2f38; }
+
+.spec-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spec-turn-tag {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f5b301;
+}
+
+.spec-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #9aa3ae;
+}
+
+.spec-result { text-align: right; }
+
+/* A projector is usually 16:9 and far away — go bigger, not denser. */
+@media (min-width: 1600px) {
+  .spec-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 26px; }
+}

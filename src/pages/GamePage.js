@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
@@ -57,6 +57,14 @@ const GamePage = () => {
 	const [playerColor, setPlayerColor] = useState('WHITE');
 	const aiColor = playerColor === 'WHITE' ? 'BLACK' : 'WHITE';
 
+	// §6.3: when the human to move has no ordinary move, their only legal
+	// continuation is promoting a dead piece in place. Surface it or the game
+	// softlocks with no way to continue.
+	const promotions = useMemo(
+		() => (gameState.currentTurn === playerColor ? AI.getPromotionMoves(gameState) : []),
+		[gameState, playerColor]
+	);
+
 	// Right sidebar (Move History) collapsed by default
 	const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
@@ -112,14 +120,12 @@ const GamePage = () => {
 
 	useEffect(() => {
 		const savedState = localStorage.getItem('gameState');
-        console.log("savedState", savedState)
 		if (savedState) {
 			setGameState(JSON.parse(savedState));
 		}
 	}, []);
 
 	useEffect(() => {
-        console.log("trying to store gameState", gameState);
 		localStorage.setItem('gameState', JSON.stringify(gameState));
 	}, [gameState]);
 
@@ -134,7 +140,6 @@ const GamePage = () => {
                 currentTurn: prevState.currentTurn === 'WHITE' ? 'BLACK' : 'WHITE'
             };
 
-			console.log(prevState.currentTurn, "to", nextState.currentTurn, "Moving", from, to);
 
             // Update move history
             const newMoveHistory = moveHistory.slice(0, currentMoveIndex + 1);
@@ -183,12 +188,13 @@ const GamePage = () => {
 
 	useEffect(() => {
 
-		console.log("Applying the miracle", gameState);
 		
 		// Perform AI MOVE when it's the AI's turn (opposite of playerColor)
 		if (isAI && !stopAI && gameState.currentTurn === aiColor) {
 			const performAIMove = async () => {
 				await delay();
+				// isMaximizing is accepted for backwards compatibility and ignored
+				// by the engine: min/max follows gameState.currentTurn.
 				const isMaximizing = aiColor === 'BLACK';
 				const BESTMOVE = AI.getNextBestMove(
 					gameState,
@@ -197,12 +203,12 @@ const GamePage = () => {
 					{
 						maxMs: toNullableNumber(currentProfile.maxMs),
 						maxNodes: toNullableNumber(currentProfile.maxNodes),
-						rootProbeNodes: Number(currentProfile.rootProbeNodes),
-						stochasticTopK: Number(currentProfile.stochasticTopK)
+						stochasticTopK: Number(currentProfile.stochasticTopK),
+						temperature: Number(currentProfile.temperature),
+						blunderRate: Number(currentProfile.blunderRate ?? 0)
 					}
 				);
 				const { move } = BESTMOVE;
-				console.log(`BESTMOVE ${aiColor}`, BESTMOVE);
 				if ( move ) {
 					applyMove( move.from, move.to );
 				}
@@ -422,13 +428,13 @@ const GamePage = () => {
 									onChange={(e) => setProfileValue('maxNodes', e.target.value === '' ? null : Number(e.target.value))}
 								/>
 
-								<label htmlFor="ai-root-probe">Root probe nodes</label>
+								<label htmlFor="ai-temperature">Temperature (centipieces, 0 = always best)</label>
 								<input
-									id="ai-root-probe"
+									id="ai-temperature"
 									type="number"
-									min="1"
-									value={currentProfile.rootProbeNodes}
-									onChange={(e) => setProfileValue('rootProbeNodes', Number(e.target.value))}
+									min="0"
+									value={currentProfile.temperature}
+									onChange={(e) => setProfileValue('temperature', Number(e.target.value))}
 								/>
 
 								<label htmlFor="ai-top-k">Stochastic top-k</label>
@@ -470,8 +476,9 @@ const GamePage = () => {
 						vWidth={vWidth}
 						gameState={gameState}
 						gameBoard={gameBoard}
-						isValidMove={AI.isValidMove}
+						isValidMove={AI.isLegalMove}
 						applyMove={applyMove}
+						promotions={promotions}
 						ApplyMoveAI={AI.ApplyMoveAI}
 					/>
 					{showBoardRestart ? (

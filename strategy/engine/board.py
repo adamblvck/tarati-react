@@ -60,6 +60,77 @@ for a, b in EDGES:
     EDGE_SET.add((a, b))
     EDGE_SET.add((b, a))
 
+# -- Rank / forward tables ------------------------------------------------
+#
+# RANK maps each vertex to its row index on the board, 0 at BLACK's home-base
+# line (D3/D4) up to 10 at WHITE's (D1/D2). It is derived once from the render
+# geometry and then frozen, replacing the old float test
+# ``POSITION_Y[from] - POSITION_Y[to] > 10`` in the move validator.
+#
+# The board has an exact 180° automorphism swapping the two home bases
+# (A1→A1, Bi→B(i+3), Ci→C(i+6), D1↔D3, D2↔D4), under which RANK[m(v)] ==
+# MAX_RANK - RANK[v]. Building the forward rule and the evaluation on RANK
+# therefore makes both provably colour-symmetric — see test_search.py.
+
+def _build_rank():
+    """Cluster vertex Y-coordinates into discrete rows.
+
+    Vertices on the same row differ only by render float-noise, so they are
+    grouped with the same tolerance the old validator used (a 10px deadband).
+    Every genuine row gap is >= 125px, so the clustering is unambiguous.
+    """
+    from .positions import get_position
+
+    ys = sorted(get_position(v)[1] for v in VERTICES)
+    rows = [ys[0]]
+    for y in ys[1:]:
+        if y - rows[-1] > 10:
+            rows.append(y)
+
+    def row_of(y):
+        return next(i for i, r in enumerate(rows) if abs(y - r) <= 10)
+
+    return {v: row_of(get_position(v)[1]) for v in VERTICES}
+
+RANK = _build_rank()
+MAX_RANK = max(RANK.values())
+
+# 180° rotation: the automorphism that maps WHITE's half onto BLACK's.
+ROTATION = {'A1': 'A1'}
+for _i in range(1, 7):
+    ROTATION['B%d' % _i] = 'B%d' % (((_i - 1 + 3) % 6) + 1)
+for _i in range(1, 13):
+    ROTATION['C%d' % _i] = 'C%d' % (((_i - 1 + 6) % 12) + 1)
+ROTATION.update({'D1': 'D3', 'D2': 'D4', 'D3': 'D1', 'D4': 'D2'})
+
+# Reflection through the B1-A1-B4 axis. Unlike ROTATION this preserves
+# colours, and it fixes the opening setup — so White's four legal first moves
+# are really two mirror-pairs (C1-B1 with C2-B1, C1-C12 with C2-C3) and Tarati
+# has only TWO structurally distinct opening moves, not four. Together with
+# ROTATION it generates the board's full symmetry group.
+REFLECTION = {'A1': 'A1', 'B1': 'B1', 'B4': 'B4'}
+for _a, _b in [('B2', 'B6'), ('B3', 'B5'),
+               ('C1', 'C2'), ('C12', 'C3'), ('C11', 'C4'),
+               ('C10', 'C5'), ('C9', 'C6'), ('C8', 'C7'),
+               ('D1', 'D2'), ('D4', 'D3')]:
+    REFLECTION[_a] = _b
+    REFLECTION[_b] = _a
+
+# FORWARD[colour][vertex] → frozenset of neighbours that count as "forward"
+# for a cob of that colour. WHITE advances toward rank 0, BLACK toward MAX_RANK.
+FORWARD = {
+    'WHITE': {v: frozenset(n for n in ADJACENCY[v] if RANK[n] < RANK[v]) for v in VERTICES},
+    'BLACK': {v: frozenset(n for n in ADJACENCY[v] if RANK[n] > RANK[v]) for v in VERTICES},
+}
+
+# Outermost home-base points where a non-upgraded cob becomes dead (patent §6.1)
+DEAD_POSITIONS = {
+    'WHITE': frozenset(['D3', 'D4']),
+    'BLACK': frozenset(['D1', 'D2']),
+}
+
+OPPONENT = {'WHITE': 'BLACK', 'BLACK': 'WHITE'}
+
 # -- Initial game state ---------------------------------------------------
 
 def initial_game_state():

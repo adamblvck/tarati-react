@@ -1,0 +1,157 @@
+/* The app paints a dark background behind every page and content pages sit on
+ * a light translucent card (see RulesPage). Match that so the guide is legible
+ * and visually consistent with the rest of the site. */
+.strategy-page {
+  max-width: 48rem;
+  margin: 2.5rem auto;
+  padding: 2.5rem 2.25rem 4rem;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+  font-family: "Archivo", sans-serif;
+  color: #1a1a1a;
+}
+
+.strategy-hero h1 {
+  font-size: 2.2rem;
+  margin: 0 0 0.75rem;
+  color: #111;
+}
+
+.strategy-hero p {
+  max-width: 38rem;
+  line-height: 1.55;
+  color: #444;
+}
+
+.strategy-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1.75rem 0 2.25rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+  padding-bottom: 1rem;
+}
+
+.strategy-tab {
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.strategy-tab:hover {
+  border-color: rgba(128, 128, 128, 0.6);
+}
+
+.strategy-tab.active {
+  background: #c0392b;
+  border-color: #c0392b;
+  color: #fff;
+}
+
+.strategy-prose {
+  line-height: 1.62;
+  font-size: 1.02rem;
+}
+
+.strategy-prose { color: #1a1a1a; }
+
+.strategy-prose h1 {
+  font-size: 1.8rem;
+  margin: 0 0 1rem;
+  color: #111;
+}
+
+.strategy-prose h2 {
+  font-size: 1.25rem;
+  margin: 2rem 0 0.6rem;
+}
+
+.strategy-prose h3 {
+  font-size: 1.05rem;
+  font-style: italic;
+  margin: 1.4rem 0 0.4rem;
+}
+
+.strategy-prose p {
+  margin: 0 0 0.85rem;
+}
+
+.strategy-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 1.2rem 0;
+}
+
+.strategy-prose th,
+.strategy-prose td {
+  text-align: right;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.strategy-prose th:first-child,
+.strategy-prose td:first-child {
+  text-align: left;
+}
+
+.strategy-prose code {
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 0.88em;
+  padding: 0.05em 0.3em;
+  border-radius: 3px;
+  background: rgba(128, 128, 128, 0.14);
+}
+
+.strategy-figure {
+  margin: 1.6rem auto;
+  text-align: center;
+}
+
+.strategy-figure figcaption,
+.strategy-sequence figcaption {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.strategy-sequence { margin: 1.6rem 0; }
+
+.strategy-sequence-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.strategy-sequence-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.strategy-sequence-sub {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.strategy-empty {
+  padding: 4rem 0;
+  text-align: center;
+  opacity: 0.7;
+}

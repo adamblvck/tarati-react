@@ -51,10 +51,67 @@
   font-weight: 600;
 }
 
+.header-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Archivo", sans-serif;
+}
+
+.header-account-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.header-account-name:hover {
+  background: rgba(245, 245, 245, 0.6);
+}
+
+.header-signout {
+  font-family: "Archivo", sans-serif;
+  font-size: 0.85rem;
+  color: #666;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 6px;
+}
+.header-signout:hover {
+  color: #111;
+}
+
+.header-signup {
+  font-family: "Archivo", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: #111;
+  padding: 8px 18px;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
+.header-signup:hover {
+  opacity: 0.85;
+}
+
 @media (max-width: 600px) {
   .site-header {
     padding: 0 16px;
     height: 56px;
+    flex-wrap: wrap;
+  }
+
+  .header-account {
+    gap: 6px;
+  }
+
+  .header-signout {
+    display: none;
   }
 
   .header-logo {
@@ -64,5 +121,29 @@
   .nav-tab {
     font-size: 0.8rem;
     padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  /* Six tabs don't fit on a phone at any readable size. Let the row scroll
+     rather than clipping "Multiplayer" — which is the one an event visitor
+     most needs to reach. */
+  .header-nav {
+    flex: 1 1 100%;
+    order: 3;
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+
+  .header-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-header {
+    height: auto;
+    padding: 8px 12px 0;
+    row-gap: 4px;
   }
 }

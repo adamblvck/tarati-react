@@ -5,3 +5,7 @@ seaborn
 tqdm
 jupyter
 ipykernel
+
+# Booklet rendering (32-page A5 saddle-stitch PDF with bleed + crop marks).
+# Needs the homebrew native stack: brew install pango cairo harfbuzz
+weasyprint==69.0

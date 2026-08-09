@@ -1,0 +1,339 @@
+/* Shared styling for auth, lobby, settings, replay and privacy pages. */
+
+.acct-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+  color: #eaeaea;
+}
+
+.acct-narrow {
+  max-width: 460px;
+}
+
+.acct-card {
+  background: rgba(23, 23, 23, 0.86);
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 28px;
+  backdrop-filter: blur(6px);
+}
+
+.acct-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: #fff;
+}
+
+.acct-subtitle {
+  color: #9a9a9a;
+  margin: 0 0 24px;
+  font-size: 14px;
+}
+
+.acct-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.acct-field label {
+  font-size: 13px;
+  color: #bbb;
+}
+
+.acct-field input,
+.acct-field select {
+  background: #101010;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 11px 12px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+}
+
+.acct-field input:focus,
+.acct-field select:focus {
+  border-color: #777;
+}
+
+.acct-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s ease;
+}
+
+.acct-btn:hover { opacity: 0.9; }
+.acct-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.acct-btn.secondary {
+  background: transparent;
+  color: #eaeaea;
+  border: 1px solid #3a3a3a;
+}
+
+.acct-btn.danger {
+  background: #b3261e;
+  color: #fff;
+}
+
+.acct-btn.google {
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+}
+
+.acct-btn.auto { width: auto; }
+
+.acct-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+  font-size: 12px;
+  margin: 18px 0;
+}
+.acct-divider::before,
+.acct-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #2a2a2a;
+}
+
+.acct-links {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.acct-links a { color: #9ecbff; text-decoration: none; }
+.acct-links a:hover { text-decoration: underline; }
+
+.acct-error {
+  background: rgba(179, 38, 30, 0.15);
+  border: 1px solid rgba(179, 38, 30, 0.5);
+  color: #ffb4ae;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.acct-notice {
+  background: rgba(46, 125, 50, 0.15);
+  border: 1px solid rgba(46, 125, 50, 0.5);
+  color: #a5d6a7;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.acct-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: #bbb;
+  margin-bottom: 18px;
+}
+.acct-consent input { margin-top: 2px; }
+.acct-consent a { color: #9ecbff; }
+
+/* --- Lobby --- */
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 760px) {
+  .lobby-grid { grid-template-columns: 1fr; }
+}
+
+.lobby-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.lobby-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #141414;
+}
+.lobby-item .meta { display: flex; flex-direction: column; gap: 2px; }
+.lobby-item .meta strong { color: #fff; }
+.lobby-item .meta span { color: #888; font-size: 12px; }
+
+.color-choice { display: flex; gap: 8px; }
+.color-choice button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #101010;
+  color: #ddd;
+  cursor: pointer;
+}
+.color-choice button.active { border-color: #fff; background: #222; }
+
+/* --- Settings tabs --- */
+
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #2a2a2a;
+}
+.settings-tab {
+  background: none;
+  border: none;
+  color: #999;
+  padding: 10px 4px;
+  margin-right: 16px;
+  cursor: pointer;
+  font-size: 15px;
+  border-bottom: 2px solid transparent;
+}
+.settings-tab.active { color: #fff; border-bottom-color: #fff; }
+
+.replay-list { list-style: none; padding: 0; margin: 0; }
+.replay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #141414;
+  text-decoration: none;
+  color: inherit;
+}
+.replay-row:hover { border-color: #444; }
+.replay-row .badge {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #222;
+  color: #bbb;
+  text-transform: capitalize;
+}
+.replay-row .badge.win { background: rgba(46,125,50,0.25); color: #a5d6a7; }
+.replay-row .badge.loss { background: rgba(179,38,30,0.2); color: #ffb4ae; }
+.replay-row .badge.draw { background: rgba(120,120,120,0.25); color: #ccc; }
+
+/* --- Online game side panel --- */
+
+.online-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 240px;
+}
+.online-players { display: flex; flex-direction: column; gap: 8px; }
+.online-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  background: #141414;
+}
+.online-player.active-turn { border-color: #fff; }
+.online-player .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #555; }
+.online-player .dot.white { background: #fff; }
+.online-player .dot.black { background: #111; }
+.online-clock { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
+.online-clock.low { color: #ff6b6b; }
+
+.invite-box {
+  border: 1px dashed #3a3a3a;
+  border-radius: 10px;
+  padding: 14px;
+  background: #121212;
+}
+.invite-code {
+  font-size: 28px;
+  letter-spacing: 4px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  margin: 6px 0 12px;
+}
+
+.acct-muted { color: #888; font-size: 13px; }
+
+/* --- Privacy / prose --- */
+
+.acct-prose h2 { color: #fff; font-size: 18px; margin: 26px 0 8px; }
+.acct-prose p, .acct-prose li { color: #cfcfcf; line-height: 1.6; font-size: 15px; }
+.acct-prose ul { padding-left: 20px; }
+
+/* Guarded-route loading state. Without this it renders as bare text in the
+   top-left corner of a dark page — the first thing a visitor sees. */
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: 40px 20px;
+  font-family: "Archivo", sans-serif;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Online game on a phone.
+   The desktop layout is a row: a 240px panel beside the board. At 375px that
+   leaves the board a thumbnail, which is the opposite of what matters — most
+   people at an event are holding a phone. Stack instead, board first. */
+@media (max-width: 768px) {
+  .game-page.online-game {
+    height: auto;
+    min-height: calc(100vh - 64px);
+    overflow: visible;
+  }
+
+  .game-page.online-game .game-layout {
+    flex-direction: column;
+    justify-content: flex-start;
+    height: auto;
+    gap: 8px;
+  }
+
+  .game-page.online-game .game-area {
+    order: 1;
+    height: auto;
+    width: 100%;
+  }
+
+  .game-page.online-game .online-panel {
+    order: 2;
+    min-width: 0;
+    width: 100%;
+    padding: 0 16px 28px;
+  }
+
+  /* Full-width tap target for the primary action. */
+  .game-page.online-game .online-panel .acct-btn {
+    width: 100%;
+  }
+}

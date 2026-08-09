@@ -5,7 +5,10 @@
     align-items: center;
     flex-grow: 1;
 	height:100%;
-	padding: 20px
+	padding: 20px;
+	/* Anchors .promote-bar. Safe: the only other positioned descendant is the
+	   turn indicator, which is position:fixed and so unaffected. */
+	position: relative;
 }
 
 @media (max-width: 768px) {
@@ -54,3 +57,70 @@
 	padding-bottom: 20px;
     overflow: visible;
 }
+
+/* --- §6.3 in-place promotion ------------------------------------------- */
+
+.promote-ring {
+	fill: none;
+	stroke: #f5b301;
+	stroke-width: 3;
+	opacity: 0.9;
+	animation: promotePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes promotePulse {
+	0%, 100% { opacity: 0.25; }
+	50%      { opacity: 0.95; }
+}
+
+.promote-bar {
+	position: absolute;
+	left: 50%;
+	bottom: 24px;
+	transform: translateX(-50%);
+	z-index: 20;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	max-width: min(94vw, 560px);
+	padding: 12px 16px;
+	border-radius: 18px;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(16px) saturate(130%);
+	-webkit-backdrop-filter: blur(16px) saturate(130%);
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+	animation: promoteBarIn 220ms ease-out;
+}
+
+@keyframes promoteBarIn {
+	from { opacity: 0; transform: translate(-50%, 8px); }
+	to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.promote-hint {
+	font-family: "Archivo", sans-serif;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #333;
+	text-align: center;
+}
+
+.promote-btn {
+	margin: 0;
+	/* 44px min target: these get tapped on phones at a booth. */
+	min-height: 44px;
+	padding: 10px 22px;
+	border: 1px solid rgba(0, 0, 0, 0.45);
+	border-radius: 999px;
+	font-family: "Archivo", sans-serif;
+	font-weight: 700;
+	color: #1b1b1b;
+	background: #f5b301;
+	cursor: pointer;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+}
+
+.promote-btn:hover { filter: brightness(1.06); }
+.promote-btn:active { transform: translateY(1px); }

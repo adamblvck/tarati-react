@@ -1,0 +1,50 @@
+Enumerating the opening tree to ply 10...
+  ply  1:          4 distinct positions
+  ply  2:         16 distinct positions
+  ply  3:         76 distinct positions
+  ply  4:        357 distinct positions
+  ply  5:       1115 distinct positions
+  ply  6:       3544 distinct positions
+  ply  7:      10730 distinct positions
+  ply  8:      31913 distinct positions
+  ply  9:      87350 distinct positions
+  ply 10:     235693 distinct positions
+  370799 positions total in 0.4s
+
+Oracle-evaluating 235693 leaves at depth 12 (10 workers)...
+  20000/235693  20 pos/s  ETA 177m
+  40000/235693  22 pos/s  ETA 150m
+  60000/235693  25 pos/s  ETA 118m
+  80000/235693  27 pos/s  ETA 95m
+  100000/235693  30 pos/s  ETA 75m
+  120000/235693  32 pos/s  ETA 60m
+  140000/235693  33 pos/s  ETA 48m
+  160000/235693  34 pos/s  ETA 37m
+  180000/235693  34 pos/s  ETA 27m
+  200000/235693  35 pos/s  ETA 17m
+  220000/235693  35 pos/s  ETA 7m
+  done in 6636.1s
+
+Backing values up the DAG...
+  backed up ply  9:      87350 positions
+  backed up ply  8:      31913 positions
+  backed up ply  7:      10730 positions
+  backed up ply  6:       3544 positions
+  backed up ply  5:       1115 positions
+  backed up ply  4:        357 positions
+  backed up ply  3:         76 positions
+  backed up ply  2:         16 positions
+  backed up ply  1:          4 positions
+  backed up ply  0:          1 positions
+
+Writing outputs...
+  data/book.sqlite: 370799 rows (28 MB)
+  ../public/opening-book.json: 4933 entries (1193 KB)
+
+  Root value (positive favours WHITE): -205 centipieces
+  Best first move: C1 -> B1
+  All 4 first moves, by loss:
+    C1-B1      -205  (loss 0)
+    C1-C12     -205  (loss 0)
+    C2-B1      -205  (loss 0)
+    C2-C3      -205  (loss 0)

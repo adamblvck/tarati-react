@@ -1,0 +1,72 @@
+sampling positions from the corpus...
+  L1     6000 games available for sampling
+  L2     6000 games available for sampling
+  L3     6000 games available for sampling
+  L4     6000 games available for sampling
+  L5     6000 games available for sampling
+  L6     6000 games available for sampling
+  L8     3550 games available for sampling
+  162380 sightings over 134354 distinct positions (4s)
+  0 already labelled, 134354 to evaluate at depth 12 with 9 workers
+  5000/134354 positions  7/s  ETA 5:01:17
+  10000/134354 positions  7/s  ETA 4:45:45
+  15000/134354 positions  8/s  ETA 4:21:41
+/opt/homebrew/Cellar/pypy3.11/7.3.23_1/libexec/lib/pypy3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+sampling positions from the corpus...
+  L1     6000 games available for sampling
+  L2     6000 games available for sampling
+  L3     6000 games available for sampling
+  L4     6000 games available for sampling
+  L5     6000 games available for sampling
+  L6     6000 games available for sampling
+  L8     3550 games available for sampling
+  162380 sightings over 134354 distinct positions (4s)
+  14800 already labelled, 119554 to evaluate at depth 12 with 9 workers
+  5000/119554 positions  8/s  ETA 3:53:17
+  10000/119554 positions  7/s  ETA 4:38:03
+  15000/119554 positions  6/s  ETA 5:05:56
+  20000/119554 positions  5/s  ETA 5:03:45
+  25000/119554 positions  5/s  ETA 4:51:00
+  30000/119554 positions  5/s  ETA 4:33:34
+  35000/119554 positions  5/s  ETA 4:23:37
+  40000/119554 positions  5/s  ETA 4:05:22
+  45000/119554 positions  6/s  ETA 3:41:19
+  50000/119554 positions  6/s  ETA 3:18:59
+  55000/119554 positions  6/s  ETA 3:00:38
+  60000/119554 positions  6/s  ETA 2:44:37
+  65000/119554 positions  6/s  ETA 2:26:53
+  70000/119554 positions  6/s  ETA 2:10:22
+  75000/119554 positions  6/s  ETA 1:55:15
+  80000/119554 positions  6/s  ETA 1:41:59
+  85000/119554 positions  6/s  ETA 1:28:45
+  90000/119554 positions  7/s  ETA 1:15:44
+  95000/119554 positions  7/s  ETA 1:02:30
+  100000/119554 positions  7/s  ETA 0:49:25
+  105000/119554 positions  7/s  ETA 0:36:33
+  110000/119554 positions  7/s  ETA 0:23:52
+  115000/119554 positions  7/s  ETA 0:11:21
+
+recording 162380 sightings...
+done in 4:56:59
+positions: 134354   sightings: 162380   size: 0.07 GB
+
+move quality by tier (Elo rises down the list):
+  tier   plays    %best   mean loss   median   %blunder   %decisive
+  L1       31019     44.6       116.3       15       31.2         35.8
+  L2       27301     52.4       110.0        7       29.9         35.3
+  L3       25897     57.3        72.8        0       21.9         32.4
+  L4       24530     64.7        58.8        0       18.5         32.7
+  L5       22672     68.0        40.2        0       13.0         29.0
+  L6       20350     79.6        22.7        0        7.7         27.8
+  L8       10611     87.8         9.7        0        3.4         28.1
+
+move quality by game phase (quantitative errors only):
+  1 opening         47106  mean loss     76.4  %best  54.7
+  2 middlegame      29371  mean loss     62.7  %best  60.2
+  3 endgame         33532  mean loss     63.2  %best  54.2
+
+decisive errors by phase (a move that throws a proven result):
+  1 opening         62331  %changed the result   8.4
+  2 middlegame      53146  %changed the result   9.7
+  3 endgame         46903  %changed the result   8.1

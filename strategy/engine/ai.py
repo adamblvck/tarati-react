@@ -1,130 +1,153 @@
-"""Minimax AI with alpha-beta pruning — direct port of src/AI.js.
+"""Minimax AI with alpha-beta pruning — kept in lockstep with src/AI.js.
 
-Key additions over the JS version:
-  - Per-search transposition table (not a global singleton) for multiprocessing safety.
-  - Root-level randomisation among equally-scoring moves (for game diversity).
-  - Move limit parameter to prevent infinite games between equal-strength AIs.
+The rules-facing API here speaks the dict game-state the React app and the
+notebooks use. The search itself runs on the integer bitboards in
+``bitboard.py`` and converts only at the boundary, so no object is allocated
+per node.
+
+Three search properties are load-bearing, and ``test_search.py`` enforces them:
+
+1. **Terminal scoring depends on whose turn it is, not on material.** A player
+   who cannot move has lost, however far ahead they are. The previous version
+   used ``score < 0 ? +WIN : -WIN`` — material sign as a proxy for the winner —
+   which made the engine structurally unable to see "ahead but jammed", the
+   characteristic loss in a game with forward-only movement.
+
+2. **Transposition entries are reused only at the depth they were searched to.**
+   See ``_negamax`` for why the conventional ``entry.depth >= depth`` rule
+   silently corrupts fixed-depth scores.
+
+3. **Root moves are searched with a full window.** Narrowing alpha/beta across
+   sibling root moves turns every root score after the first into a bound,
+   which breaks both best-move selection and temperature sampling.
+
+Evaluation is in centipieces: 100 == one piece.
 """
 
 import random
 import math
 import time
-from .positions import get_position, POSITION_Y, ensure_positions
+
 from .board import (
     VERTICES, EDGE_SET, ADJACENCY, HOME_BASES,
+    RANK, MAX_RANK, FORWARD, DEAD_POSITIONS, OPPONENT,
     apply_move_to_board,
 )
+from . import bitboard as bb
+from .bitboard import EVAL_WEIGHTS, set_weights  # noqa: F401  (re-exported)
 
-# -- Evaluation constants (match JS) --------------------------------------
+# -- Constants -------------------------------------------------------------
 
 WINNING_SCORE = 1_000_000
+MAX_SEARCH_PLY = 256
+MATE_THRESHOLD = WINNING_SCORE - MAX_SEARCH_PLY
+
+#: Softmax temperature for stochastic move choice, in centipieces.
+#: 25 == a quarter of a piece. The previous implementation softmaxed raw scores
+#: whose unit was ~100/piece, so exp(-100) made it a uniform tie-breaker rather
+#: than an exploration knob.
+DEFAULT_TEMPERATURE = 25.0
+
+# Retained for backwards compatibility with older notebook configs.
 ROOT_PROBE_NODES = 50
 HARD_MAX_NODES = 15_000
 EXPERT_MAX_NODES = 25_000
 
-# -- Core functions --------------------------------------------------------
+# Transposition bound flags
+_EXACT, _LOWER, _UPPER = 0, 1, 2
 
-# Outermost home-base positions where non-upgraded cobs become dead (patent §6.1)
-DEAD_POSITIONS = {
-    'WHITE': frozenset(['D3', 'D4']),
-    'BLACK': frozenset(['D1', 'D2']),
-}
 
+class _SearchAborted(Exception):
+    """Raised when the node or time budget is exhausted mid-search.
+
+    Unwinding by exception guarantees no partial result reaches the
+    transposition table and no truncated score is compared against a complete
+    one — the root simply falls back to the last fully completed iteration.
+    """
+
+
+class TranspositionTable:
+    """Depth-keyed value cache plus a depth-agnostic move-ordering hint.
+
+    ``values`` is keyed by (position, depth) because a value is only valid at
+    the depth it was searched to. ``moves`` is keyed by position alone: a best
+    move found at any depth is worth trying first, and using it cannot affect
+    correctness because it only reorders the move list. That hint is what makes
+    iterative deepening pay for itself.
+    """
+
+    __slots__ = ('values', 'moves')
+
+    def __init__(self):
+        self.values = {}
+        self.moves = {}
+
+    def __len__(self):
+        return len(self.values)
+
+
+# -- Rules API (dict game-state) -------------------------------------------
 
 def is_valid_move(game_state, from_v, to_v):
     """Move validation — implements patent §3."""
     if from_v == to_v:
         return False
-
     if (from_v, to_v) not in EDGE_SET:
         return False
 
     checker = game_state['checkers'].get(from_v)
     if not checker:
         return False
-
     if to_v in game_state['checkers']:
         return False
-
     if checker['color'] != game_state['currentTurn']:
         return False
 
-    # Roks (upgraded pieces) can move in any direction (patent §3.3)
-    if checker['isUpgraded']:
+    # Roks move in any direction (§3.3); so do cobs on their own home base (§3.2)
+    if checker['isUpgraded'] or from_v in HOME_BASES[checker['color']]:
         return True
-
-    # Home-base exception: cobs on their own home base can move any direction (patent §3.2)
-    if from_v in HOME_BASES[checker['color']]:
-        return True
-
-    # Forward-only for regular cobs (patent §3.1)
-    ensure_positions()
-    from_y = POSITION_Y[from_v]
-    to_y = POSITION_Y[to_v]
-    if checker['color'] == 'WHITE' and (from_y - to_y > 10):
-        return True
-    elif checker['color'] == 'BLACK' and (to_y - from_y > 10):
-        return True
-
-    return False
+    return to_v in FORWARD[checker['color']][from_v]
 
 
 def get_all_possible_moves(game_state):
-    """Return list of (from_v, to_v) tuples for the current player.
+    """Return [(from_v, to_v), ...] for the current player.
 
-    When no normal moves exist, returns dead piece promotions (patent §6.3).
-    Promotions are represented as (vertex, vertex) — from == to.
+    When no normal move exists this returns the dead-piece promotions of
+    patent §6.3, represented as (vertex, vertex).
     """
-    normal_moves = []
-    for from_v, checker in game_state['checkers'].items():
-        if checker['color'] == game_state['currentTurn']:
-            for to_v in ADJACENCY[from_v]:
-                if is_valid_move(game_state, from_v, to_v):
-                    normal_moves.append((from_v, to_v))
-    if normal_moves:
-        return normal_moves
-
-    # No normal moves — check for dead piece promotions
-    promotions = []
-    for vertex, checker in game_state['checkers'].items():
-        if checker['color'] != game_state['currentTurn']:
-            continue
-        if checker['isUpgraded']:
-            continue
-        dead_pos = DEAD_POSITIONS.get(checker['color'])
-        if not dead_pos or vertex not in dead_pos:
-            continue
-        has_exit = any(adj not in game_state['checkers'] for adj in ADJACENCY[vertex])
-        if has_exit:
-            promotions.append((vertex, vertex))
-    return promotions
+    return [bb.move_to_vertices(m) for m in bb.gen_moves(*bb.from_state(game_state))]
 
 
 def apply_move_ai(board_state, from_v, to_v):
-    """Apply move and toggle turn (used inside the search tree)."""
+    """Apply move and toggle turn."""
     new_state, _, _ = apply_move_to_board(board_state, from_v, to_v)
-    new_state['currentTurn'] = 'BLACK' if board_state['currentTurn'] == 'WHITE' else 'WHITE'
+    new_state['currentTurn'] = OPPONENT[board_state['currentTurn']]
     return new_state
 
 
+def terminal_loser(game_state, moves=None):
+    """Return the colour that has lost, or None if the game is still running.
+
+    Two ways to lose (patent §7.1): every piece on the board belongs to the
+    opponent, or the player to move has no legal move (including the dead-piece
+    promotion of §6.3).
+    """
+    loser = bb.terminal_loser(*bb.from_state(game_state))
+    if loser is None:
+        return None
+    return 'WHITE' if loser == bb.WHITE else 'BLACK'
+
+
 def is_game_over(game_state):
-    """Game ends when current player has no moves (including promotions)
-    or all pieces are one colour."""
-    if not get_all_possible_moves(game_state):
-        return True
-    colors = set(c['color'] for c in game_state['checkers'].values())
-    return len(colors) == 1
+    """Game ends when the player to move has no moves, or one colour is gone."""
+    return terminal_loser(game_state) is not None
 
 
 # -- Draw detection utilities (patent §7.2) --------------------------------
 
 def hash_position(game_state):
     """Deterministic position hash for repetition tracking."""
-    items = tuple(sorted(
-        (k, v['color'], v['isUpgraded'])
-        for k, v in game_state['checkers'].items()
-    ))
-    return hash((items, game_state['currentTurn']))
+    return bb.zobrist(*bb.from_state(game_state))
 
 
 def check_threefold_repetition(position_hashes):
@@ -145,278 +168,304 @@ def check_fifty_move_rule(cob_moved_flags):
 
 
 def evaluate_board(game_state):
-    """Static evaluation — positive favours WHITE (matches JS)."""
-    white_pieces = 0.0
-    black_pieces = 0.0
-    white_upgrades = 0
-    black_upgrades = 0
+    """Static evaluation in centipieces — positive favours WHITE.
 
-    for checker in game_state['checkers'].values():
-        value = 1.5 if checker['isUpgraded'] else 1.0
-        if checker['color'] == 'WHITE':
-            white_pieces += value
-            if checker['isUpgraded']:
-                white_upgrades += 1
+    Every term is built either on RANK (antisymmetric under the board's 180°
+    automorphism) or on vertex sets that map onto their opposite under it, so
+    ``eval(P) == -eval(rotate_and_swap(P))`` holds exactly.
+    """
+    occ, white, rok, _stm = bb.from_state(game_state)
+    return bb.evaluate(occ, white, rok)
+
+
+# -- Search ----------------------------------------------------------------
+
+def _check_budget(ctx):
+    if ctx is None:
+        return
+    ctx['nodes'] += 1
+    if ctx['max_nodes'] is not None and ctx['nodes'] >= ctx['max_nodes']:
+        raise _SearchAborted
+    # perf_counter is comparatively expensive; sample it rather than call it
+    # on every node.
+    if ctx['deadline'] is not None and (ctx['nodes'] & 255) == 0:
+        if time.perf_counter() >= ctx['deadline']:
+            raise _SearchAborted
+
+
+def _tt_store_value(value, ply):
+    """Re-base a mate score to be relative to this node before storing."""
+    if value > MATE_THRESHOLD:
+        return value + ply
+    if value < -MATE_THRESHOLD:
+        return value - ply
+    return value
+
+
+def _tt_load_value(value, ply):
+    """Re-base a stored mate score to be relative to the current root."""
+    if value > MATE_THRESHOLD:
+        return value - ply
+    if value < -MATE_THRESHOLD:
+        return value + ply
+    return value
+
+
+def _search(occ, white, rok, stm, depth, alpha, beta, ply, tt, ctx):
+    """Negamax with alpha-beta on bitboards. Returns a side-to-move score.
+
+    Table entries are reused only at **exactly** the depth they were searched
+    to. Chess engines conventionally accept any entry of greater-or-equal
+    depth, treating the deeper value as strictly better, but that makes the
+    result depend on search history: in fixed-depth minimax the depth-8 value
+    of a position is a different quantity from its depth-5 value, so a depth-8
+    bound licenses no conclusion about a depth-5 window. Reusing it anyway lets
+    a bound masquerade as an exact value and the corruption propagates upward —
+    which is how a root move here came back scoring -309 against a true -530.
+
+    Matching on exact depth keeps every genuine same-depth transposition (the
+    bulk of the benefit) while making the search a pure function of the
+    position, which the oracle and the labelling pass both depend on.
+    """
+    _check_budget(ctx)
+
+    alpha_orig = alpha
+    tt_move = -1
+    key = None
+
+    if tt is not None:
+        key = bb.zobrist(occ, white, rok, stm)
+        tt_move = tt.moves.get(key, -1)   # ordering hint, valid at any depth
+        entry = tt.values.get((key, depth))
+        if entry is not None:
+            value = _tt_load_value(entry[0], ply)
+            flag = entry[1]
+            if flag == _EXACT:
+                return value
+            if flag == _LOWER:
+                if value > alpha:
+                    alpha = value
+            elif value < beta:
+                beta = value
+            if alpha >= beta:
+                return value
+
+    moves = bb.gen_moves(occ, white, rok, stm)
+    if not moves:
+        # The side to move cannot move and has therefore lost (§7.1). Scaling
+        # by ply prefers the fastest win and the longest resistance.
+        return -(WINNING_SCORE - ply)
+    black = occ & ~white
+    if not black or not white:
+        loser = bb.BLACK if not black else bb.WHITE
+        return (-(WINNING_SCORE - ply) if loser == stm else WINNING_SCORE - ply)
+
+    if depth <= 0:
+        score = bb.evaluate(occ, white, rok)
+        return score if stm == bb.WHITE else -score
+
+    if len(moves) > 1:
+        moves.sort(key=lambda m: bb.order_score(occ, white, rok, stm, m, tt_move),
+                   reverse=True)
+
+    best_score = -math.inf
+    best_move = -1
+    for move in moves:
+        c_occ, c_white, c_rok, c_stm = bb.make_move(occ, white, rok, stm, move)
+        score = -_search(c_occ, c_white, c_rok, c_stm,
+                         depth - 1, -beta, -alpha, ply + 1, tt, ctx)
+        if score > best_score:
+            best_score = score
+            best_move = move
+        if best_score > alpha:
+            alpha = best_score
+        if alpha >= beta:
+            break
+
+    if tt is not None:
+        if best_score <= alpha_orig:
+            flag = _UPPER
+        elif best_score >= beta:
+            flag = _LOWER
         else:
-            black_pieces += value
-            if checker['isUpgraded']:
-                black_upgrades += 1
+            flag = _EXACT
+        tt.values[(key, depth)] = (_tt_store_value(best_score, ply), flag)
+        if best_move >= 0:
+            tt.moves[key] = best_move
 
-    return (white_pieces - black_pieces) * 97 + (white_upgrades - black_upgrades) * 117
-
-
-def _quick_evaluate(game_state):
-    """Fast eval for move ordering (matches JS quickEvaluate)."""
-    score = 0.0
-    for checker in game_state['checkers'].values():
-        score += 1 if checker['color'] == 'BLACK' else -1
-        if checker['isUpgraded']:
-            score += 0.5 if checker['color'] == 'BLACK' else -0.5
-    return score
+    return best_score
 
 
-def _hash_board(game_state):
-    """Deterministic board hash for the transposition table."""
-    items = tuple(sorted(
-        (k, v['color'], v['isUpgraded'])
-        for k, v in game_state['checkers'].items()
-    ))
-    return hash((items, game_state['currentTurn']))
+def _negamax(game_state, depth, alpha, beta, ply, tt=None, ctx=None, weights=None):
+    """Dict-facing wrapper around the bitboard search (used by the tests)."""
+    occ, white, rok, stm = bb.from_state(game_state)
+    return _search(occ, white, rok, stm, depth, alpha, beta, ply, tt, ctx)
 
 
-def _sort_moves(moves, game_state, is_maximizing):
-    """Sort moves by quick evaluation for better alpha-beta pruning."""
-    def key_fn(move):
-        return _quick_evaluate(apply_move_ai(game_state, move[0], move[1]))
-    moves.sort(key=key_fn, reverse=is_maximizing)
+def _root_scores(occ, white, rok, stm, depth, tt, ctx):
+    """Score every root move with a full window.
+
+    Full windows cost pruning, but a narrowed window makes every sibling score
+    after the first a bound rather than a value — which would corrupt both the
+    best-move choice and the temperature sampling below.
+    """
+    moves = bb.gen_moves(occ, white, rok, stm)
+    hint = tt.moves.get(bb.zobrist(occ, white, rok, stm), -1) if tt is not None else -1
+    moves.sort(key=lambda m: bb.order_score(occ, white, rok, stm, m, hint),
+               reverse=True)
+
+    scored = []
+    for move in moves:
+        c_occ, c_white, c_rok, c_stm = bb.make_move(occ, white, rok, stm, move)
+        score = -_search(c_occ, c_white, c_rok, c_stm,
+                         depth - 1, -math.inf, math.inf, 1, tt, ctx)
+        scored.append((move, score))
+
+    scored.sort(key=lambda item: item[1], reverse=True)
+    return scored
 
 
-# -- Minimax with alpha-beta ----------------------------------------------
+def _sample_move(scored, temperature, top_k, rng):
+    """Softmax-sample among the top-k root moves.
 
-def _default_max_nodes(depth):
-    """Auto node budget for deeper difficulties."""
-    if depth >= 12:
-        return EXPERT_MAX_NODES
-    if depth >= 9:
-        return HARD_MAX_NODES
-    return None
-
-
-def _weighted_top_choice(candidates, is_maximizing):
-    """Pick stochastically from top candidates using softmax weighting."""
-    if not candidates:
+    Scores are in centipieces and so is the temperature, so it behaves as an
+    actual exploration width: at 25, a move half a piece worse is chosen about
+    14% as often as the best one.
+    """
+    if not scored:
         return None
-    if len(candidates) == 1:
-        return candidates[0]
+    best_score = scored[0][1]
 
-    direction = 1.0 if is_maximizing else -1.0
-    adjusted = [direction * score for _, score in candidates]
-    max_adjusted = max(adjusted)
-    # Keep exponentials numerically stable by shifting by max.
-    weights = [math.exp(a - max_adjusted) for a in adjusted]
-    return random.choices(candidates, weights=weights, k=1)[0]
+    if temperature and temperature > 0 and top_k > 1:
+        candidates = scored[:top_k]
+        weights = [math.exp((s - best_score) / temperature) for _, s in candidates]
+        if sum(weights) > 0:
+            return rng.choices([m for m, _ in candidates], weights=weights, k=1)[0]
 
-
-def _is_budget_exhausted(search_ctx):
-    """Return True when node/time/probe budgets are exhausted."""
-    if search_ctx is None:
-        return False
-
-    max_nodes = search_ctx['max_nodes']
-    probe_limit = search_ctx['probe_limit']
-    deadline = search_ctx['deadline']
-
-    if max_nodes is not None and search_ctx['nodes'] >= max_nodes:
-        return True
-    if probe_limit is not None and search_ctx['nodes'] >= probe_limit:
-        return True
-    if deadline is not None and time.perf_counter() >= deadline:
-        return True
-    return False
+    return rng.choice([m for m, s in scored if s == best_score])
 
 
-def _minimax(game_state, depth, is_maximizing, alpha, beta, tt, search_ctx=None):
-    """Internal minimax search — not called directly."""
-    if search_ctx is not None:
-        if _is_budget_exhausted(search_ctx):
-            return {'score': evaluate_board(game_state), 'move': None, 'cutoff': True}
-        search_ctx['nodes'] += 1
+def search_root(
+    occ, white, rok, stm,
+    depth=8,
+    randomize=True,
+    max_nodes=None,
+    max_ms=None,
+    stochastic_top_k=3,
+    temperature=DEFAULT_TEMPERATURE,
+    use_tt=True,
+    rng=None,
+):
+    """Bitboard-native search entry point.
 
-    board_hash = _hash_board(game_state)
-    cached = tt.get(board_hash)
-    if cached is not None and cached['depth'] >= depth:
-        return {'score': cached['result']['score'], 'move': cached['result']['move'], 'cutoff': False}
+    Returns (chosen_move, scored, completed_depth) with moves as packed ints.
+    Corpus generation drives this directly rather than going through
+    ``get_next_best_move``, which would convert a dict game-state to bitboards
+    on every single ply of every game.
+    """
+    rng = rng or random
+    moves = bb.gen_moves(occ, white, rok, stm)
+    if not moves:
+        return None, [], 0
 
-    game_over = is_game_over(game_state)
+    if max_nodes is None and max_ms is None:
+        ctx = None
+    else:
+        ctx = {
+            'nodes': 0,
+            'max_nodes': max_nodes,
+            'deadline': None if max_ms is None else time.perf_counter() + max_ms / 1000.0,
+        }
 
-    if depth == 0 or game_over:
-        score = evaluate_board(game_state)
-        if game_over:
-            result_score = WINNING_SCORE if score < 0 else -WINNING_SCORE
-        else:
-            result_score = score
-        return {'score': result_score, 'move': None, 'cutoff': False}
+    tt = TranspositionTable() if use_tt else None
+    completed = None
+    completed_depth = 0
 
-    best_move = None
-    best_score = float('-inf') if is_maximizing else float('inf')
-    cutoff = False
-
-    possible_moves = get_all_possible_moves(game_state)
-    _sort_moves(possible_moves, game_state, is_maximizing)
-
-    for move in possible_moves:
-        if _is_budget_exhausted(search_ctx):
-            cutoff = True
+    for current_depth in range(1, max(1, depth) + 1):
+        try:
+            scored = _root_scores(occ, white, rok, stm, current_depth, tt, ctx)
+        except _SearchAborted:
+            break
+        completed = scored
+        completed_depth = current_depth
+        # A proven forced result cannot be improved by looking further.
+        if abs(scored[0][1]) > MATE_THRESHOLD:
             break
 
-        new_state = apply_move_ai(game_state, move[0], move[1])
-        result = _minimax(new_state, depth - 1, not is_maximizing, alpha, beta, tt, search_ctx)
-        score = result['score']
-        cutoff = cutoff or result.get('cutoff', False)
+    if completed is None:
+        # Budget expired before even depth 1 finished — fall back to a static
+        # ranking so a legal move is always returned.
+        def static(move):
+            c_occ, c_white, c_rok, c_stm = bb.make_move(occ, white, rok, stm, move)
+            score = bb.evaluate(c_occ, c_white, c_rok)
+            return -(score if c_stm == bb.WHITE else -score)
+        completed = sorted(((m, static(m)) for m in moves),
+                           key=lambda item: item[1], reverse=True)
 
-        if is_maximizing:
-            if score > best_score:
-                best_score = score
-                best_move = move
-            alpha = max(alpha, best_score)
-        else:
-            if score < best_score:
-                best_score = score
-                best_move = move
-            beta = min(beta, best_score)
+    if randomize:
+        chosen = _sample_move(completed, temperature, stochastic_top_k, rng)
+    else:
+        chosen = completed[0][0]
 
-        if beta <= alpha:
-            break
-
-    if best_move is None:
-        # Budget may have expired before exploring children.
-        return {'score': evaluate_board(game_state), 'move': None, 'cutoff': True}
-
-    result = {'score': best_score, 'move': best_move, 'cutoff': cutoff}
-    if not cutoff:
-        tt[board_hash] = {'depth': depth, 'result': {'score': best_score, 'move': best_move}}
-    return result
+    return chosen, completed, completed_depth
 
 
 def get_next_best_move(
     game_state,
     depth=8,
-    is_maximizing=True,
+    is_maximizing=None,
     randomize=True,
     max_nodes=None,
     max_ms=None,
-    root_probe_nodes=ROOT_PROBE_NODES,
+    root_probe_nodes=None,
     stochastic_top_k=3,
+    temperature=DEFAULT_TEMPERATURE,
+    weights=None,
+    use_tt=True,
+    rng=None,
 ):
-    """Top-level search entry point.
+    """Iterative-deepening search entry point.
 
     Parameters
     ----------
-    game_state : dict   — current board + currentTurn
-    depth      : int    — search depth (3=Easy, 6=Medium, 9=Hard, 12=Champion)
-    is_maximizing : bool — True when the AI is BLACK (matches JS convention)
-    randomize  : bool   — pick randomly among moves with the same best score
+    game_state    : dict  — board + currentTurn
+    depth         : int   — maximum search depth in plies
+    is_maximizing : bool  — accepted for backwards compatibility and ignored.
+                            Min/max follows ``currentTurn``, the only
+                            self-consistent reading; callers that passed a value
+                            inconsistent with the side to move previously got a
+                            search for the *opponent's* preference.
+    randomize     : bool  — sample among near-best moves instead of taking the best
+    max_nodes     : int   — node budget; returns the last completed depth
+    max_ms        : int   — wall-clock budget in milliseconds
+    root_probe_nodes : deprecated, ignored (round-robin root probing is gone)
+    stochastic_top_k : int   — how many root moves are sampling candidates
+    temperature      : float — softmax width in centipieces; 0 disables sampling
+    use_tt        : bool  — enable the transposition table
+    rng           : random.Random — per-game stream; defaults to the global one
 
     Returns
     -------
-    dict with keys 'score' and 'move' (tuple or None).
+    dict with 'score' (positive favours WHITE), 'move' as (from, to) vertex
+    names, 'depth' (deepest completed iteration) and 'scores' (every root move,
+    best first, from the side-to-move's perspective).
     """
-    tt = {}  # fresh transposition table per search call
+    occ, white, rok, stm = bb.from_state(game_state)
+    chosen, completed, completed_depth = search_root(
+        occ, white, rok, stm,
+        depth=depth, randomize=randomize, max_nodes=max_nodes, max_ms=max_ms,
+        stochastic_top_k=stochastic_top_k, temperature=temperature,
+        use_tt=use_tt, rng=rng,
+    )
+    if chosen is None:
+        return {'score': 0, 'move': None, 'depth': 0, 'scores': []}
 
-    possible_moves = get_all_possible_moves(game_state)
-    if not possible_moves:
-        return {'score': 0, 'move': None}
+    stm_score = dict(completed)[chosen]
+    white_score = stm_score if stm == bb.WHITE else -stm_score
 
-    _sort_moves(possible_moves, game_state, is_maximizing)
-
-    if max_nodes is None:
-        max_nodes = _default_max_nodes(depth)
-
-    # Unlimited search keeps original behavior.
-    if max_nodes is None and max_ms is None:
-        alpha = float('-inf')
-        beta = float('inf')
-        scored_moves = []
-
-        for move in possible_moves:
-            new_state = apply_move_ai(game_state, move[0], move[1])
-            result = _minimax(new_state, depth - 1, not is_maximizing, alpha, beta, tt)
-            scored_moves.append((move, result['score']))
-
-            # Tighten bounds for deeper subtrees (but don't skip root moves)
-            if is_maximizing:
-                alpha = max(alpha, result['score'])
-            else:
-                beta = min(beta, result['score'])
-
-        if is_maximizing:
-            best_score = max(s for _, s in scored_moves)
-        else:
-            best_score = min(s for _, s in scored_moves)
-
-        best_moves = [m for m, s in scored_moves if s == best_score]
-        chosen = random.choice(best_moves) if randomize else best_moves[0]
-        return {'score': best_score, 'move': chosen}
-
-    # Budgeted root round-robin search:
-    # explore each root move in slices before going deeper.
-    deadline = None
-    if max_ms is not None:
-        deadline = time.perf_counter() + max(max_ms, 0) / 1000.0
-
-    search_ctx = {'nodes': 0, 'max_nodes': max_nodes, 'probe_limit': None, 'deadline': deadline}
-    move_stats = {
-        move: {'score': evaluate_board(apply_move_ai(game_state, move[0], move[1])), 'depth': 0, 'cutoff': False}
-        for move in possible_moves
+    return {
+        'score': white_score,
+        'move': bb.move_to_vertices(chosen),
+        'depth': completed_depth,
+        'scores': [(bb.move_to_vertices(m), s) for m, s in completed],
     }
-
-    for current_depth in range(1, depth + 1):
-        for move in possible_moves:
-            if _is_budget_exhausted(search_ctx):
-                break
-
-            if max_nodes is None:
-                probe_budget = root_probe_nodes
-            else:
-                remaining = max_nodes - search_ctx['nodes']
-                probe_budget = min(root_probe_nodes, remaining)
-            search_ctx['probe_limit'] = search_ctx['nodes'] + probe_budget
-
-            new_state = apply_move_ai(game_state, move[0], move[1])
-            result = _minimax(
-                new_state,
-                current_depth - 1,
-                not is_maximizing,
-                float('-inf'),
-                float('inf'),
-                tt,
-                search_ctx,
-            )
-
-            move_stats[move] = {
-                'score': result['score'],
-                'depth': current_depth,
-                'cutoff': result.get('cutoff', False),
-            }
-
-        search_ctx['probe_limit'] = None
-        if _is_budget_exhausted(search_ctx):
-            break
-
-    best_depth = max(stats['depth'] for stats in move_stats.values())
-    depth_candidates = [(move, stats['score']) for move, stats in move_stats.items() if stats['depth'] == best_depth]
-
-    ordered = sorted(depth_candidates, key=lambda item: item[1], reverse=is_maximizing)
-    best_score = ordered[0][1]
-
-    if randomize:
-        if len(ordered) > 1 and stochastic_top_k > 1:
-            top_candidates = ordered[:stochastic_top_k]
-            chosen_move, _ = _weighted_top_choice(top_candidates, is_maximizing)
-        else:
-            best_moves = [m for m, s in ordered if s == best_score]
-            chosen_move = random.choice(best_moves)
-    else:
-        chosen_move = ordered[0][0]
-
-    return {'score': best_score, 'move': chosen_move}

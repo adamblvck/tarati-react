@@ -4,12 +4,14 @@
   "author": "adamblvck",
   "homepage": "/",
   "private": false,
+  "proxy": "http://localhost:8787",
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "better-auth": "^1.4.19",
     "lucide-react": "^0.428.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -25,7 +27,16 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "bash ./scripts/run-dev-with-env.sh",
+    "api:dev": "npm --prefix ./api run dev",
+    "api:tunnel": "bash ./api/scripts/start-db-tunnel.sh",
+    "api:build": "npm --prefix ./api run build",
+    "api:test": "npm --prefix ./api test",
+    "api:db:generate": "bash ./scripts/run-db-with-env.sh generate",
+    "api:db:migrate": "bash ./scripts/run-db-with-env.sh migrate",
+    "api:db:studio": "bash ./scripts/run-db-with-env.sh studio",
+    "deploy:api": "bash ./scripts/run-deploy-with-env.sh"
   },
   "eslintConfig": {
     "extends": [
@@ -47,6 +58,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "concurrently": "^9.2.1",
     "gh-pages": "^6.1.1"
   }
 }

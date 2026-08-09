@@ -1,0 +1,96 @@
+configs: 8   pairings: 28   games to play: 1680   workers: 10
+  25/1680 games  26.63 games/s  ETA 1m02s
+  50/1680 games  45.68 games/s  ETA 0m35s
+  75/1680 games  53.62 games/s  ETA 0m29s
+  100/1680 games  48.65 games/s  ETA 0m32s
+  125/1680 games  58.00 games/s  ETA 0m26s
+  150/1680 games  62.06 games/s  ETA 0m24s
+  175/1680 games  60.64 games/s  ETA 0m24s
+  200/1680 games  45.52 games/s  ETA 0m32s
+  225/1680 games  47.12 games/s  ETA 0m30s
+  250/1680 games  50.11 games/s  ETA 0m28s
+  275/1680 games  40.96 games/s  ETA 0m34s
+  300/1680 games  30.41 games/s  ETA 0m45s
+  325/1680 games  24.23 games/s  ETA 0m55s
+  350/1680 games  17.37 games/s  ETA 1m16s
+  375/1680 games  12.94 games/s  ETA 1m40s
+  400/1680 games  6.35 games/s  ETA 3m21s
+  425/1680 games  5.40 games/s  ETA 3m52s
+  450/1680 games  5.71 games/s  ETA 3m35s
+  475/1680 games  6.03 games/s  ETA 3m19s
+  500/1680 games  6.35 games/s  ETA 3m05s
+  525/1680 games  6.66 games/s  ETA 2m53s
+  550/1680 games  6.98 games/s  ETA 2m41s
+  575/1680 games  7.30 games/s  ETA 2m31s
+  600/1680 games  7.61 games/s  ETA 2m21s
+  625/1680 games  7.85 games/s  ETA 2m14s
+  650/1680 games  8.03 games/s  ETA 2m08s
+  675/1680 games  7.40 games/s  ETA 2m15s
+  700/1680 games  6.57 games/s  ETA 2m29s
+  725/1680 games  6.03 games/s  ETA 2m38s
+  750/1680 games  5.10 games/s  ETA 3m02s
+  775/1680 games  4.59 games/s  ETA 3m17s
+  800/1680 games  3.92 games/s  ETA 3m44s
+  825/1680 games  4.04 games/s  ETA 3m31s
+  850/1680 games  4.16 games/s  ETA 3m19s
+  875/1680 games  4.28 games/s  ETA 3m07s
+  900/1680 games  4.41 games/s  ETA 2m57s
+  925/1680 games  4.53 games/s  ETA 2m46s
+  950/1680 games  4.65 games/s  ETA 2m37s
+  975/1680 games  4.77 games/s  ETA 2m27s
+  1000/1680 games  4.69 games/s  ETA 2m24s
+  1025/1680 games  4.71 games/s  ETA 2m19s
+  1050/1680 games  4.26 games/s  ETA 2m27s
+  1075/1680 games  3.96 games/s  ETA 2m32s
+  1100/1680 games  3.92 games/s  ETA 2m28s
+  1125/1680 games  4.01 games/s  ETA 2m18s
+  1150/1680 games  4.10 games/s  ETA 2m09s
+  1175/1680 games  4.18 games/s  ETA 2m00s
+  1200/1680 games  4.27 games/s  ETA 1m52s
+  1225/1680 games  4.24 games/s  ETA 1m47s
+  1250/1680 games  4.13 games/s  ETA 1m44s
+  1275/1680 games  4.03 games/s  ETA 1m40s
+  1300/1680 games  3.74 games/s  ETA 1m41s
+  1325/1680 games  3.64 games/s  ETA 1m37s
+  1350/1680 games  3.70 games/s  ETA 1m29s
+  1375/1680 games  3.77 games/s  ETA 1m20s
+  1400/1680 games  3.75 games/s  ETA 1m14s
+  1425/1680 games  3.70 games/s  ETA 1m08s
+  1450/1680 games  3.52 games/s  ETA 1m05s
+  1475/1680 games  3.35 games/s  ETA 1m01s
+  1500/1680 games  3.23 games/s  ETA 0m55s
+  1525/1680 games  3.23 games/s  ETA 0m47s
+  1550/1680 games  3.17 games/s  ETA 0m40s
+  1575/1680 games  3.05 games/s  ETA 0m34s
+  1600/1680 games  2.94 games/s  ETA 0m27s
+  1625/1680 games  2.84 games/s  ETA 0m19s
+  1650/1680 games  2.60 games/s  ETA 0m11s
+  1675/1680 games  2.44 games/s  ETA 0m02s
+  1680/1680 games  2.32 games/s  ETA 0m00s
+
+========================================================================
+MEASURED STRENGTH LADDER   (1680 games)
+========================================================================
+  cfg  depth  nodes     temp  blunder      Elo   95%% CI          step
+  L1       2    400      160     0.20        0   [  -73,    71]
+  L2       3   1000      110     0.10      199   [  140,   245]  +199
+  L3       4   2500       70     0.03      454   [  414,   500]  +256
+  L4       5   6000       40     0.00      621   [  584,   654]  +166
+  L5       6  15000       20     0.00      742   [  712,   782]  +122
+  L6       8  40000        0     0.00      976   [  941,  1017]  +234
+  L7      10 100000        0     0.00     1068   [ 1026,  1108]  +92
+  L8      12 250000        0     0.00     1094   [ 1052,  1140]  +26
+
+  White score across all games: 50.2%  (colour-balanced, so 50% expected)
+  Average game length: 34.3 plies
+  Terminations: no_legal_moves=217, threefold=187, total_conversion=1276
+
+------------------------------------------------------------------------
+GATES
+  [PASS] ladder is monotone
+  [FAIL] every step >= 100 Elo (min 26)
+  [FAIL] adjacent 95%% CIs disjoint
+  [PASS] White share in [0.40, 0.60] (0.502)
+
+  GATES FAILED — do not launch the corpus run
+  wrote data/ladder.json

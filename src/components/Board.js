@@ -69,13 +69,20 @@ const DraggableChecker = ({ id, color, isUpgraded, position, vWidth }) => {
     );
 };
 
-const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize }, ref) => {
+const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize, promotions = [] }, ref) => {
    
 	const touchSensor = useSensor(TouchSensor, {
-        // Require the touch to move by 5px before activating
+        // Short press-and-hold before a drag starts, so scrolling the page
+        // doesn't accidentally pick up a piece.
+        //
+        // `tolerance` is how far the finger may travel DURING `delay` without
+        // cancelling. It was 0, which meant the slightest wobble — and fingers
+        // always wobble — aborted the drag before it began, making the board
+        // feel broken on a phone. 10px absorbs normal jitter while still
+        // distinguishing a hold from a swipe.
         activationConstraint: {
-            delay: 50, // 250ms delay
-            tolerance: 0, // 5px tolerance
+            delay: 80,
+            tolerance: 10,
         },
     });
 
@@ -91,8 +98,17 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 		const { active, over } = event;
 
 		if (!(active && over)) return;
-		if (active?.id === over?.id) return;
-		console.log(active, over)
+
+		// A drop onto the piece's own vertex is the §6.3 in-place promotion.
+		// It is only ever legal when the player has no ordinary move, so a
+		// stray tap can never cost anyone a turn they wanted to spend
+		// elsewhere — and when it isn't legal this behaves exactly as before.
+		if (active.id === over.id) {
+			if (isValidMove(gameState, active.id, active.id)) {
+				applyMove(active.id, active.id);
+			}
+			return;
+		}
 
 		if (isValidMove(gameState, active?.id, over?.id)) {
 			applyMove(active.id, over.id);
@@ -139,6 +155,22 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 						/>
 					))}
 
+					{/* Highlight pieces that can be promoted in place (§6.3).
+					    pointerEvents:none so this never intercepts a drag. */}
+					{promotions.map((vertexId) => {
+						const p = Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth);
+						return (
+							<circle
+								key={`promote-ring-${vertexId}`}
+								className="promote-ring"
+								cx={p.x}
+								cy={p.y}
+								r={vWidth/4}
+								style={{ pointerEvents: 'none' }}
+							/>
+						);
+					})}
+
 					{/* Draw Draggable Checkers */}
 					{Object.entries(gameState.checkers).map(([id, checker]) => (
 						<DraggableChecker
@@ -152,6 +184,25 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 					))}
 				</svg>
 			</DndContext>
+			{/* No ordinary move exists, so the only legal continuation is an
+			    in-place promotion (§6.3). Dropping a piece on itself works too,
+			    but dnd-kit's collision detection is unreliable for a resting
+			    tap — this button is the path that always works, on touch too. */}
+			{promotions.length > 0 && (
+				<div className="promote-bar" role="status">
+					<span className="promote-hint">No moves left — promote a dead piece to play on.</span>
+					{promotions.map((vertexId) => (
+						<button
+							key={`promote-${vertexId}`}
+							type="button"
+							className="promote-btn"
+							onClick={() => applyMove(vertexId, vertexId)}
+						>
+							Promote {vertexId}
+						</button>
+					))}
+				</div>
+			)}
 			{/* viewWidth -> vWidth */}
 			<TurnIndicator height={200} currentTurn={gameState.currentTurn} vWidth={boardSize/2}/>
         </div>

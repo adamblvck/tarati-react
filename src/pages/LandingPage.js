@@ -106,7 +106,10 @@ const LandingPage = () => {
           </animated.p>
           <animated.div style={heroActions} className="hero-actions">
             <Link to="/play" className="btn-primary">
-              Play Now
+              Play the AI
+            </Link>
+            <Link to="/multiplayer" className="btn-primary">
+              Play Online
             </Link>
             <Link to="/rules" className="btn-secondary">
               Learn the Rules
@@ -193,10 +196,13 @@ const LandingPage = () => {
       {/* ───── CTA ───── */}
       <animated.section ref={ctaFade.ref} style={ctaFade.style} className="cta-section">
         <h2 className="cta-heading">Your move.</h2>
-        <p>Challenge the AI or explore the rules.</p>
+        <p>Challenge the AI, play a friend online, or explore the rules.</p>
         <div className="hero-actions">
           <Link to="/play" className="btn-primary">
             Start a Game
+          </Link>
+          <Link to="/signup" className="btn-primary">
+            Create Account
           </Link>
           <Link to="/rules" className="btn-secondary">
             Read the Rules

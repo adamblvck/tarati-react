@@ -1,3 +1,26 @@
 [build]
   command = "npm run build"
   publish = "build"
+
+# The API runs as a Scaleway Function, but the browser reaches it through this
+# origin. That makes the session cookie same-origin (so Safari/iOS never treats
+# it as third-party) and removes CORS from the picture entirely.
+#
+# It also means REACT_APP_API_BASE_URL stays EMPTY in production, exactly as it
+# is in local dev where CRA's "proxy" field does the same job — so local and
+# live behave identically.
+#
+# Must live here rather than in public/_redirects: netlify.toml rules are
+# evaluated first, and this has to win against the SPA catch-all.
+[[redirects]]
+  from = "/api/*"
+  to = "https://taraticloudfunctionsqhecwlnv-tarati-api-prd.functions.fnc.nl-ams.scw.cloud/api/:splat"
+  status = 200
+  force = true
+
+# SPA fallback for client-side routes (also in public/_redirects; kept here so
+# the ordering against the rule above is explicit).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

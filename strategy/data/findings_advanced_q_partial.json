@@ -1,0 +1,939 @@
+[
+  {
+    "section": "power-moves",
+    "claim": "In the sharpest positions \u2014 where one move beats every alternative by more than a whole piece \u2014 the winning move is not a strike about a quarter of the time. Those are the moves a club player never looks at, because nothing is being taken. Positions where the best move settles the game outright are counted separately: there the gap is a mate margin, not an amount of material.",
+    "stat": 0.2667893284268629,
+    "n": 9783,
+    "detail": {
+      "sharp_positions": 9783,
+      "all_positions": 36278,
+      "quiet_share_of_sharp": 0.2667893284268629,
+      "ci": [
+        0.25811794084900014,
+        0.275643792272854
+      ],
+      "decisive_positions": 7477,
+      "quiet_share_of_decisive": 0.2032900896081316,
+      "decisive_ci": [
+        0.19432146820198973,
+        0.212563435804047
+      ],
+      "decisive_by_kind": {
+        "strike": 5957,
+        "quiet": 1520
+      },
+      "quiet_share_of_all_best_moves": 0.4679420034180495,
+      "primary_label": {
+        "strike": {
+          "n": 7173,
+          "share_of_sharp": 0.7332106715731371,
+          "median_gap": 281
+        },
+        "threat": {
+          "n": 1041,
+          "share_of_sharp": 0.10640907697025452,
+          "median_gap": 177
+        },
+        "quiet-other": {
+          "n": 969,
+          "share_of_sharp": 0.099049371358479,
+          "median_gap": 170
+        },
+        "escape": {
+          "n": 336,
+          "share_of_sharp": 0.03434529285495247,
+          "median_gap": 181
+        },
+        "shut": {
+          "n": 223,
+          "share_of_sharp": 0.022794643769804765,
+          "median_gap": 162
+        },
+        "promote": {
+          "n": 37,
+          "share_of_sharp": 0.0037820709393846467,
+          "median_gap": 176
+        },
+        "cover": {
+          "n": 4,
+          "share_of_sharp": 0.0004088725339875294,
+          "median_gap": 205
+        }
+      },
+      "effect_share_of_quiet": {
+        "threat": {
+          "n": 1066,
+          "share": 0.4084291187739464
+        },
+        "shut": {
+          "n": 540,
+          "share": 0.20689655172413793
+        },
+        "escape": {
+          "n": 336,
+          "share": 0.12873563218390804
+        },
+        "promote": {
+          "n": 261,
+          "share": 0.1
+        },
+        "cover": {
+          "n": 44,
+          "share": 0.01685823754789272
+        }
+      },
+      "examples": {
+        "quiet-other": [
+          {
+            "pos": [
+              25743,
+              1154,
+              0,
+              1
+            ],
+            "move": [
+              "C8",
+              "D4"
+            ],
+            "gap": 229,
+            "runner_up": [
+              "C8",
+              "C9"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              47260,
+              6284,
+              32768,
+              1
+            ],
+            "move": [
+              "C9",
+              "C10"
+            ],
+            "gap": 221,
+            "runner_up": [
+              "C7",
+              "D3"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              5031440,
+              787968,
+              0,
+              0
+            ],
+            "move": [
+              "D1",
+              "C1"
+            ],
+            "gap": 232,
+            "runner_up": [
+              "C4",
+              "C5"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              6439437,
+              6438924,
+              6308361,
+              1
+            ],
+            "move": [
+              "A1",
+              "B1"
+            ],
+            "gap": 268,
+            "runner_up": [
+              "C3",
+              "C2"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              3183366,
+              2134020,
+              2134790,
+              1
+            ],
+            "move": [
+              "C2",
+              "C1"
+            ],
+            "gap": 273,
+            "runner_up": [
+              "C3",
+              "C4"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              434262,
+              40980,
+              303126,
+              1
+            ],
+            "move": [
+              "B1",
+              "C2"
+            ],
+            "gap": 477,
+            "runner_up": [
+              "B1",
+              "A1"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              4743443,
+              4218896,
+              24851,
+              0
+            ],
+            "move": [
+              "C7",
+              "D3"
+            ],
+            "gap": 290,
+            "runner_up": [
+              "C7",
+              "C6"
+            ],
+            "tags": []
+          },
+          {
+            "pos": [
+              3146783,
+              1048579,
+              0,
+              1
+            ],
+            "move": [
+              "D3",
+              "D4"
+            ],
+            "gap": 330,
+            "runner_up": [
+              "D3",
+              "C7"
+            ],
+            "tags": []
+          }
+        ],
+        "escape": [
+          {
+            "pos": [
+              830728,
+              40968,
+              830728,
+              0
+            ],
+            "move": [
+              "B3",
+              "C6"
+            ],
+            "gap": 281,
+            "runner_up": [
+              "C7",
+              "C6"
+            ],
+            "tags": [
+              "cover",
+              "escape",
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              7405737,
+              6291465,
+              3211401,
+              0
+            ],
+            "move": [
+              "A1",
+              "B4"
+            ],
+            "gap": 374,
+            "runner_up": [
+              "A1",
+              "B6"
+            ],
+            "tags": [
+              "escape",
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              7211522,
+              6293504,
+              4721154,
+              0
+            ],
+            "move": [
+              "C5",
+              "C6"
+            ],
+            "gap": 330,
+            "runner_up": [
+              "C5",
+              "C4"
+            ],
+            "tags": [
+              "escape"
+            ]
+          },
+          {
+            "pos": [
+              6841356,
+              6316040,
+              6841356,
+              1
+            ],
+            "move": [
+              "C4",
+              "C3"
+            ],
+            "gap": 319,
+            "runner_up": [
+              "C4",
+              "C5"
+            ],
+            "tags": [
+              "escape"
+            ]
+          },
+          {
+            "pos": [
+              2400538,
+              2138136,
+              2400536,
+              1
+            ],
+            "move": [
+              "B1",
+              "C1"
+            ],
+            "gap": 327,
+            "runner_up": [
+              "C2",
+              "D2"
+            ],
+            "tags": [
+              "escape",
+              "promote",
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              23976,
+              22568,
+              23976,
+              0
+            ],
+            "move": [
+              "B3",
+              "B4"
+            ],
+            "gap": 209,
+            "runner_up": [
+              "B3",
+              "B2"
+            ],
+            "tags": [
+              "escape"
+            ]
+          },
+          {
+            "pos": [
+              751872,
+              727296,
+              0,
+              1
+            ],
+            "move": [
+              "C8",
+              "B4"
+            ],
+            "gap": 292,
+            "runner_up": [
+              "C8",
+              "C9"
+            ],
+            "tags": [
+              "escape",
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              6312644,
+              6311936,
+              2114244,
+              0
+            ],
+            "move": [
+              "C6",
+              "C7"
+            ],
+            "gap": 243,
+            "runner_up": [
+              "C8",
+              "C7"
+            ],
+            "tags": [
+              "escape",
+              "promote",
+              "shut"
+            ]
+          }
+        ],
+        "threat": [
+          {
+            "pos": [
+              2646417,
+              524689,
+              0,
+              1
+            ],
+            "move": [
+              "C8",
+              "D4"
+            ],
+            "gap": 275,
+            "runner_up": [
+              "D3",
+              "D4"
+            ],
+            "tags": [
+              "shut",
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              8159241,
+              1835017,
+              0,
+              1
+            ],
+            "move": [
+              "D4",
+              "C8"
+            ],
+            "gap": 586,
+            "runner_up": [
+              "D3",
+              "C7"
+            ],
+            "tags": [
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              4790406,
+              526466,
+              0,
+              0
+            ],
+            "move": [
+              "B1",
+              "A1"
+            ],
+            "gap": 242,
+            "runner_up": [
+              "C1",
+              "C12"
+            ],
+            "tags": [
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              2919560,
+              527496,
+              0,
+              1
+            ],
+            "move": [
+              "C9",
+              "B5"
+            ],
+            "gap": 209,
+            "runner_up": [
+              "D3",
+              "D4"
+            ],
+            "tags": [
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              4989552,
+              786944,
+              0,
+              0
+            ],
+            "move": [
+              "D1",
+              "C1"
+            ],
+            "gap": 283,
+            "runner_up": [
+              "D1",
+              "D2"
+            ],
+            "tags": [
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              2900592,
+              786944,
+              0,
+              0
+            ],
+            "move": [
+              "D1",
+              "C1"
+            ],
+            "gap": 518,
+            "runner_up": [
+              "C3",
+              "C4"
+            ],
+            "tags": [
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              2277808,
+              164256,
+              0,
+              1
+            ],
+            "move": [
+              "C8",
+              "D4"
+            ],
+            "gap": 222,
+            "runner_up": [
+              "D3",
+              "C7"
+            ],
+            "tags": [
+              "shut",
+              "threat"
+            ]
+          },
+          {
+            "pos": [
+              1079968,
+              1055360,
+              0,
+              1
+            ],
+            "move": [
+              "C8",
+              "B4"
+            ],
+            "gap": 470,
+            "runner_up": [
+              "C7",
+              "D3"
+            ],
+            "tags": [
+              "shut",
+              "threat"
+            ]
+          }
+        ],
+        "shut": [
+          {
+            "pos": [
+              4235578,
+              4235322,
+              4194560,
+              0
+            ],
+            "move": [
+              "B4",
+              "C8"
+            ],
+            "gap": 259,
+            "runner_up": [
+              "B3",
+              "C6"
+            ],
+            "tags": [
+              "promote",
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              3309676,
+              2097152,
+              2228228,
+              1
+            ],
+            "move": [
+              "B2",
+              "A1"
+            ],
+            "gap": 319,
+            "runner_up": [
+              "B3",
+              "A1"
+            ],
+            "tags": [
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              2230331,
+              2099224,
+              133139,
+              1
+            ],
+            "move": [
+              "C11",
+              "C10"
+            ],
+            "gap": 229,
+            "runner_up": [
+              "B1",
+              "C1"
+            ],
+            "tags": [
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              1627204,
+              1593344,
+              0,
+              0
+            ],
+            "move": [
+              "C6",
+              "C7"
+            ],
+            "gap": 469,
+            "runner_up": [
+              "C8",
+              "D4"
+            ],
+            "tags": [
+              "promote",
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              823580,
+              786692,
+              0,
+              0
+            ],
+            "move": [
+              "C2",
+              "C1"
+            ],
+            "gap": 253,
+            "runner_up": [
+              "D1",
+              "D2"
+            ],
+            "tags": [
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              3163292,
+              3162264,
+              2098176,
+              0
+            ],
+            "move": [
+              "B4",
+              "C7"
+            ],
+            "gap": 284,
+            "runner_up": [
+              "B3",
+              "C6"
+            ],
+            "tags": [
+              "promote",
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              1062072,
+              5176,
+              1062064,
+              1
+            ],
+            "move": [
+              "D2",
+              "D1"
+            ],
+            "gap": 296,
+            "runner_up": [
+              "C1",
+              "B1"
+            ],
+            "tags": [
+              "shut"
+            ]
+          },
+          {
+            "pos": [
+              1508504,
+              1441920,
+              0,
+              0
+            ],
+            "move": [
+              "D2",
+              "D1"
+            ],
+            "gap": 567,
+            "runner_up": [
+              "C1",
+              "B1"
+            ],
+            "tags": [
+              "shut"
+            ]
+          }
+        ],
+        "promote": [
+          {
+            "pos": [
+              709638,
+              704514,
+              0,
+              0
+            ],
+            "move": [
+              "C8",
+              "D4"
+            ],
+            "gap": 233,
+            "runner_up": [
+              "C11",
+              "C10"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              3542033,
+              1051665,
+              0,
+              0
+            ],
+            "move": [
+              "B4",
+              "C8"
+            ],
+            "gap": 360,
+            "runner_up": [
+              "B4",
+              "C7"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              3676552,
+              2103304,
+              1048968,
+              0
+            ],
+            "move": [
+              "C6",
+              "C7"
+            ],
+            "gap": 223,
+            "runner_up": [
+              "B3",
+              "B4"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              2262440,
+              1032,
+              128,
+              1
+            ],
+            "move": [
+              "C2",
+              "D2"
+            ],
+            "gap": 330,
+            "runner_up": [
+              "C11",
+              "C12"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              66411,
+              65536,
+              65536,
+              1
+            ],
+            "move": [
+              "B1",
+              "C1"
+            ],
+            "gap": 250,
+            "runner_up": [
+              "A1",
+              "B2"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              1213734,
+              1081378,
+              0,
+              0
+            ],
+            "move": [
+              "C9",
+              "C8"
+            ],
+            "gap": 369,
+            "runner_up": [
+              "B1",
+              "B6"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              2368408,
+              2106136,
+              8320,
+              0
+            ],
+            "move": [
+              "B4",
+              "C8"
+            ],
+            "gap": 523,
+            "runner_up": [
+              "C7",
+              "C6"
+            ],
+            "tags": [
+              "promote"
+            ]
+          },
+          {
+            "pos": [
+              2720263,
+              2195457,
+              98311,
+              1
+            ],
+            "move": [
+              "C3",
+              "C2"
+            ],
+            "gap": 309,
+            "runner_up": [
+              "B1",
+              "C1"
+            ],
+            "tags": [
+              "promote"
+            ]
+          }
+        ],
+        "cover": [
+          {
+            "pos": [
+              1093689,
+              1048633,
+              8192,
+              1
+            ],
+            "move": [
+              "C7",
+              "C8"
+            ],
+            "gap": 502,
+            "runner_up": [
+              "C9",
+              "C10"
+            ],
+            "tags": [
+              "cover"
+            ]
+          },
+          {
+            "pos": [
+              2663074,
+              524928,
+              0,
+              0
+            ],
+            "move": [
+              "C1",
+              "C2"
+            ],
+            "gap": 205,
+            "runner_up": [
+              "D1",
+              "D2"
+            ],
+            "tags": [
+              "cover"
+            ]
+          }
+        ]
+      }
+    }
+  }
+]
