@@ -30,12 +30,12 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 1.75rem 0 2.25rem;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
 }
 
 .strategy-tab {
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  border: 1px solid var(--border);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -47,13 +47,15 @@
 }
 
 .strategy-tab:hover {
-  border-color: rgba(128, 128, 128, 0.6);
+  border-color: var(--border-strong);
 }
 
 .strategy-tab.active {
   background: var(--danger);
-  border-color: #c0392b;
-  color: var(--text-on-inv);
+  border-color: var(--danger);
+  /* The chip stays red in both themes, so its label must too — inverting it
+     with the page put dark text on red at 3.65:1. */
+  color: var(--text-on-danger);
 }
 
 .strategy-prose {
@@ -61,7 +63,7 @@
   font-size: 1.02rem;
 }
 
-.strategy-prose { color: #1a1a1a; }
+.strategy-prose { color: var(--text); }
 
 .strategy-prose h1 {
   font-size: 1.8rem;
@@ -95,7 +97,7 @@
 .strategy-prose td {
   text-align: right;
   padding: 0.35rem 0.5rem;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  border-bottom: 1px solid var(--border);
 }
 
 .strategy-prose th:first-child,
@@ -108,7 +110,7 @@
   font-size: 0.88em;
   padding: 0.05em 0.3em;
   border-radius: 3px;
-  background: rgba(128, 128, 128, 0.14);
+  background: var(--surface-2);
 }
 
 .strategy-figure {
@@ -154,4 +156,77 @@
   padding: 4rem 0;
   text-align: center;
   opacity: 0.7;
+}
+
+/* --- Chapter navigation ------------------------------------------------
+   The chapter tabs live at the top; after a long chapter they are far off
+   screen, so the way onward has to be where the reading ends. */
+
+.chapter-nav {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin: 48px 0 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.chapter-nav-btn {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 14px 18px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.chapter-nav-btn.next { text-align: right; align-items: flex-end; }
+
+.chapter-nav-btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface-3);
+}
+
+.chapter-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.chapter-nav-dir {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.chapter-nav-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.chapter-nav-count {
+  align-self: center;
+  flex: none;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .chapter-nav { flex-wrap: wrap; }
+  .chapter-nav-count { order: 3; width: 100%; text-align: center; }
 }

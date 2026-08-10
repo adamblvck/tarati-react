@@ -12,7 +12,7 @@
 }
 
 .acct-card {
-  background: rgba(23, 23, 23, 0.86);
+  background: var(--bg-glass);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 28px;
@@ -27,7 +27,7 @@
 }
 
 .acct-subtitle {
-  color: #9a9a9a;
+  color: var(--text-faint);
   margin: 0 0 24px;
   font-size: 14px;
 }
@@ -112,7 +112,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: #2a2a2a;
+  background: var(--surface-2);
 }
 
 .acct-links {
@@ -122,13 +122,13 @@
   font-size: 13px;
 }
 
-.acct-links a { color: #9ecbff; text-decoration: none; }
+.acct-links a { color: var(--link); text-decoration: none; }
 .acct-links a:hover { text-decoration: underline; }
 
 .acct-error {
-  background: rgba(179, 38, 30, 0.15);
-  border: 1px solid rgba(179, 38, 30, 0.5);
-  color: #ffb4ae;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-soft);
+  color: var(--danger-text);
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 13px;
@@ -136,9 +136,9 @@
 }
 
 .acct-notice {
-  background: rgba(46, 125, 50, 0.15);
-  border: 1px solid rgba(46, 125, 50, 0.5);
-  color: #a5d6a7;
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-soft);
+  color: var(--ok);
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 13px;
@@ -154,7 +154,7 @@
   margin-bottom: 18px;
 }
 .acct-consent input { margin-top: 2px; }
-.acct-consent a { color: #9ecbff; }
+.acct-consent a { color: var(--link); }
 
 /* --- Lobby --- */
 
@@ -180,7 +180,7 @@
 }
 .lobby-item .meta { display: flex; flex-direction: column; gap: 2px; }
 .lobby-item .meta strong { color: #fff; }
-.lobby-item .meta span { color: #888; font-size: 12px; }
+.lobby-item .meta span { color: var(--text-faint); font-size: 12px; }
 
 .color-choice { display: flex; gap: 8px; }
 .color-choice button {
@@ -192,7 +192,7 @@
   color: var(--text-muted);
   cursor: pointer;
 }
-.color-choice button.active { border-color: #fff; background: #222; }
+.color-choice button.active { border-color: var(--border); background: var(--surface-2); }
 
 /* --- Settings tabs --- */
 
@@ -212,7 +212,7 @@
   font-size: 15px;
   border-bottom: 2px solid transparent;
 }
-.settings-tab.active { color: #fff; border-bottom-color: #fff; }
+.settings-tab.active { color: #fff; border-bottom-color: var(--border); }
 
 .replay-list { list-style: none; padding: 0; margin: 0; }
 .replay-row {
@@ -227,18 +227,18 @@
   text-decoration: none;
   color: inherit;
 }
-.replay-row:hover { border-color: #444; }
+.replay-row:hover { border-color: var(--border); }
 .replay-row .badge {
   font-size: 11px;
   padding: 3px 9px;
   border-radius: 999px;
-  background: #222;
+  background: var(--surface-2);
   color: var(--text-muted);
   text-transform: capitalize;
 }
-.replay-row .badge.win { background: rgba(46,125,50,0.25); color: #a5d6a7; }
-.replay-row .badge.loss { background: rgba(179,38,30,0.2); color: #ffb4ae; }
-.replay-row .badge.draw { background: rgba(120,120,120,0.25); color: #ccc; }
+.replay-row .badge.win { background: var(--ok-bg); color: var(--ok); }
+.replay-row .badge.loss { background: var(--danger-bg); color: var(--danger-text); }
+.replay-row .badge.draw { background: var(--surface-2); color: var(--text-muted); }
 
 /* --- Online game side panel --- */
 
@@ -258,12 +258,12 @@
   border-radius: 10px;
   background: var(--surface);
 }
-.online-player.active-turn { border-color: #fff; }
-.online-player .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #555; }
-.online-player .dot.white { background: #fff; }
-.online-player .dot.black { background: #111; }
+.online-player.active-turn { border-color: var(--border); }
+.online-player .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border); }
+.online-player .dot.white { background: var(--surface); }
+.online-player .dot.black { background: var(--surface); }
 .online-clock { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
-.online-clock.low { color: #ff6b6b; }
+.online-clock.low { color: var(--danger-text); }
 
 .invite-box {
   border: 1px dashed var(--border);
@@ -280,12 +280,12 @@
   margin: 6px 0 12px;
 }
 
-.acct-muted { color: #888; font-size: 13px; }
+.acct-muted { color: var(--text-faint); font-size: 13px; }
 
 /* --- Privacy / prose --- */
 
-.acct-prose h2 { color: #fff; font-size: 18px; margin: 26px 0 8px; }
-.acct-prose p, .acct-prose li { color: #cfcfcf; line-height: 1.6; font-size: 15px; }
+.acct-prose h2 { color: var(--text); font-size: 18px; margin: 26px 0 8px; }
+.acct-prose p, .acct-prose li { color: var(--text-muted); line-height: 1.6; font-size: 15px; }
 .acct-prose ul { padding-left: 20px; }
 
 /* Guarded-route loading state. Without this it renders as bare text in the
@@ -298,7 +298,7 @@
   padding: 40px 20px;
   font-family: "Archivo", sans-serif;
   font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
 }
 
 /* Online game on a phone.

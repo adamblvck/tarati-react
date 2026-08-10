@@ -101,7 +101,7 @@
 }
 
 .btn-primary:hover {
-  background: rgba(51, 51, 51, 0.88);
+  background: var(--surface-inv);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -122,15 +122,15 @@
   background: var(--bg-glass-soft);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(204, 204, 204, 0.7);
+  border: 1.5px solid var(--border);
   border-radius: 8px;
   text-decoration: none;
   transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
 .btn-secondary:hover {
-  border-color: rgba(136, 136, 136, 0.7);
-  background: rgba(249, 249, 249, 0.65);
+  border-color: var(--border);
+  background: var(--bg-glass);
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
@@ -237,7 +237,7 @@
 
 .symbol-card {
   padding: 32px 16px;
-  border: 1px solid rgba(232, 232, 232, 0.7);
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg-glass-soft);
   backdrop-filter: blur(14px) saturate(120%);
@@ -279,7 +279,7 @@
   padding: 80px 40px;
   display: flex;
   justify-content: center;
-  background: rgba(17, 17, 17, 0.88);
+  background: var(--surface-inv);
   backdrop-filter: blur(16px) saturate(130%);
   -webkit-backdrop-filter: blur(16px) saturate(130%);
   color: var(--text-muted);
@@ -316,14 +316,14 @@
 
 .lof-links a {
   font-size: 0.9rem;
-  color: #8ab4f8;
+  color: var(--link);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
 
 .lof-links a:hover {
-  border-bottom-color: #8ab4f8;
+  border-bottom-color: var(--link);
 }
 
 /* CTA */
@@ -359,7 +359,7 @@
 .landing-footer {
   padding: 32px 40px;
   text-align: center;
-  border-top: 1px solid rgba(232, 232, 232, 0.6);
+  border-top: 1px solid var(--border);
   background: var(--bg-glass);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -380,7 +380,7 @@
 }
 
 .landing-footer a:hover {
-  border-bottom-color: #666;
+  border-bottom-color: var(--border);
 }
 
 /* ── Responsive ── */

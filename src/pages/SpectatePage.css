@@ -32,7 +32,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.spec-error { color: var(--danger); }
+.spec-error { color: var(--danger-text); }
 
 .spec-back {
   color: var(--text-faint);
@@ -102,9 +102,9 @@ a.spec-card:hover {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.spec-badge.is-live { background: rgba(76, 217, 100, 0.16); color: #6ee787; }
-.spec-badge.is-expired { background: rgba(255, 138, 128, 0.16); color: #ff8a80; }
-.spec-badge.is-done { background: rgba(255, 255, 255, 0.1); color: #9aa3ae; }
+.spec-badge.is-live { background: var(--ok-bg); color: var(--ok); }
+.spec-badge.is-expired { background: var(--danger-bg); color: var(--danger); }
+.spec-badge.is-done { background: var(--surface-3); color: var(--text-faint); }
 
 .spec-board {
   display: block;

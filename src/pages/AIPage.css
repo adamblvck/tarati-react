@@ -102,7 +102,7 @@
 }
 
 .bar-track {
-  background: #f0f1f6;
+  background: var(--surface-2);
   border-radius: 999px;
   height: 10px;
   overflow: hidden;
@@ -165,7 +165,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(250, 251, 255, 0.5);
+  background: var(--surface-2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }

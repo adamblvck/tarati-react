@@ -57,7 +57,7 @@
 
 .rules-toc a:hover {
   color: var(--text);
-  background: #f0f0f0;
+  background: var(--surface-2);
 }
 
 .toc-dot {
@@ -138,7 +138,7 @@
   font-size: 0.92rem !important;
   color: var(--text-faint) !important;
   font-style: italic;
-  border-left: 3px solid #e0e0e0;
+  border-left: 3px solid var(--border);
   padding-left: 14px;
   margin-top: 8px !important;
 }
@@ -178,7 +178,7 @@
   background: var(--bg-glass-soft);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(238, 238, 238, 0.6);
+  border-top: 1px solid var(--border);
 }
 
 .rules-cta h2 {

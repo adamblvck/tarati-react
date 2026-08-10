@@ -26,8 +26,9 @@
   --surface-inv-2: #1f1f1f;
 
   --text: #111111;
-  --text-muted: #666666;
-  --text-faint: #999999;
+  --text-muted: #5a5a5a;
+  /* #999 read at 2.78:1 on a white card — below AA for body text. */
+  --text-faint: #6b6b6b;
   --text-on-inv: #f4f5f7;
 
   --border: rgba(0, 0, 0, 0.12);
@@ -41,10 +42,14 @@
   --accent: #f5b301;
   --accent-ink: #1b1b1b;
   --danger: #b3261e;
+  --danger-text: #b3261e;
   --danger-soft: rgba(179, 38, 30, 0.5);
   /* Red stays red in both themes, so its foreground is fixed. */
   --text-on-danger: #ffffff;
   --ok: #2e7d32;
+  --ok-soft: rgba(46, 125, 50, 0.5);
+  --ok-bg: rgba(46, 125, 50, 0.12);
+  --danger-bg: rgba(179, 38, 30, 0.1);
   --link: #2b6cb0;
 
   /* Board. White and black pieces stay recognisably white and black in both
@@ -81,7 +86,7 @@
 
   --text: #f2f3f5;
   --text-muted: #9aa3ae;
-  --text-faint: #79828d;
+  --text-faint: #8d959f;
   --text-on-inv: #14161a;
 
   --border: rgba(255, 255, 255, 0.12);
@@ -95,8 +100,13 @@
   --accent: #f5b301;
   --accent-ink: #1b1b1b;
   --danger: #c8402f;
+  /* Same hue, lifted enough to pass as body text on a dark surface. */
+  --danger-text: #ff8d7d;
   --danger-soft: rgba(224, 104, 90, 0.45);
   --ok: #6ee787;
+  --ok-soft: rgba(110, 231, 135, 0.45);
+  --ok-bg: rgba(110, 231, 135, 0.14);
+  --danger-bg: rgba(224, 104, 90, 0.16);
   --link: #7fb3ec;
 
   --board-line: #39404b;

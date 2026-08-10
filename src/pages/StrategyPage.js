@@ -87,7 +87,18 @@ const StrategyPage = () => {
     );
   }
 
-  const current = chapters.find((c) => c.slug === active) || chapters[0];
+  const index = Math.max(0, chapters.findIndex((c) => c.slug === active));
+  const current = chapters[index] || chapters[0];
+  const previous = index > 0 ? chapters[index - 1] : null;
+  const next = index < chapters.length - 1 ? chapters[index + 1] : null;
+
+  // Reading a chapter leaves you at the bottom of it; jumping to the next one
+  // without scrolling back up would drop you into the middle of it.
+  const goTo = (chapter) => {
+    if (!chapter) return;
+    setActive(chapter.slug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="strategy-page">
@@ -114,6 +125,32 @@ const StrategyPage = () => {
       </nav>
 
       <Chapter chapter={current} />
+
+      <nav className="chapter-nav" aria-label="Chapter navigation">
+        <button
+          type="button"
+          className="chapter-nav-btn prev"
+          onClick={() => goTo(previous)}
+          disabled={!previous}
+        >
+          <span className="chapter-nav-dir">← Previous</span>
+          <span className="chapter-nav-title">{previous ? previous.title : 'Start of the guide'}</span>
+        </button>
+
+        <span className="chapter-nav-count">
+          {index + 1} of {chapters.length}
+        </span>
+
+        <button
+          type="button"
+          className="chapter-nav-btn next"
+          onClick={() => goTo(next)}
+          disabled={!next}
+        >
+          <span className="chapter-nav-dir">Next →</span>
+          <span className="chapter-nav-title">{next ? next.title : 'End of the guide'}</span>
+        </button>
+      </nav>
     </div>
   );
 };
