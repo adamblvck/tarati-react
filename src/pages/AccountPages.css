@@ -308,7 +308,9 @@
 @media (max-width: 768px) {
   .game-page.online-game {
     height: auto;
-    min-height: calc(100vh - 64px);
+    /* Was calc(100vh - 64px). The header is ~79px on a phone, and svh is the
+       viewport with browser chrome showing — see --header-h in Header.js. */
+    min-height: calc(100svh - var(--header-h, 64px));
     overflow: visible;
   }
 
@@ -323,6 +325,19 @@
     order: 1;
     height: auto;
     width: 100%;
+  }
+
+  /* This page deliberately scrolls on a phone — the panel stacks below the
+     board — so the height chain above is `auto`, and .board-container has
+     nothing definite to resolve `height: 100%` against. That matters because
+     the board is now sized intrinsically from its viewBox: without a definite
+     height here, the container sizes to the board while useBoardSize measures
+     the container to decide how big the board should be, and the two chase
+     each other down to a thumbnail. A viewport-relative cap breaks the loop.
+     The board is width-bound at phone widths, so this only sets the ceiling. */
+  .game-page.online-game .board-container {
+    height: 66svh;
+    min-height: 300px;
   }
 
   .game-page.online-game .online-panel {
