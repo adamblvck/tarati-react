@@ -49,7 +49,7 @@ const MiniBoard = ({
             refY="3"
             orient="auto"
           >
-            <polygon points="0 0, 8 3, 0 6" fill="#c0392b" />
+            <polygon points="0 0, 8 3, 0 6" className="mini-arrow-head" />
           </marker>
           <marker
             id="arrowhead-alt"
@@ -59,7 +59,7 @@ const MiniBoard = ({
             refY="3"
             orient="auto"
           >
-            <polygon points="0 0, 8 3, 0 6" fill="#2c3e50" />
+            <polygon points="0 0, 8 3, 0 6" className="mini-arrow-head-alt" />
           </marker>
         </defs>
 
@@ -76,7 +76,7 @@ const MiniBoard = ({
               key={`e-${i}`}
               x1={fp.x} y1={fp.y}
               x2={tp.x} y2={tp.y}
-              stroke={isHighlighted ? '#e74c3c' : '#aaa'}
+              className={isHighlighted ? 'mini-edge is-highlighted' : 'mini-edge'}
               strokeWidth={isHighlighted ? 2.5 : 1.5}
               opacity={isHighlighted ? 1 : 0.7}
             />
@@ -92,7 +92,7 @@ const MiniBoard = ({
               key={`v-${vid}`}
               cx={p.x} cy={p.y}
               r={isHL ? 6 : 4}
-              fill={isHL ? '#e74c3c' : '#999'}
+              className={isHL ? 'mini-vertex is-highlighted' : 'mini-vertex'}
               opacity={isHL ? 1 : 0.8}
             />
           );
@@ -105,14 +105,13 @@ const MiniBoard = ({
             <g key={`c-${id}`}>
               <circle
                 cx={p.x} cy={p.y} r={checkerRadius}
-                fill={checker.color === 'WHITE' ? '#fff' : '#222'}
-                stroke="#333"
+                className={`mini-piece ${checker.color === 'WHITE' ? 'is-white' : 'is-black'}`}
                 strokeWidth={1.5}
               />
               {checker.isUpgraded && (
                 <circle
-                  cx={p.x} cy={p.y} r={checkerRadius * 0.55}
-                  fill={checker.color === 'WHITE' ? '#222' : '#fff'}
+                  cx={p.x} cy={p.y} r={checkerRadius * 0.45}
+                  className="mini-rok"
                 />
               )}
             </g>
@@ -128,7 +127,7 @@ const MiniBoard = ({
               key={`arrow-${i}`}
               x1={fp.x} y1={fp.y}
               x2={tp.x} y2={tp.y}
-              stroke="#c0392b"
+              className="mini-arrow"
               strokeWidth={2.5}
               markerEnd="url(#arrowhead)"
               opacity={0.85}
@@ -145,7 +144,7 @@ const MiniBoard = ({
               key={`arrow-alt-${i}`}
               x1={fp.x} y1={fp.y}
               x2={tp.x} y2={tp.y}
-              stroke="#2c3e50"
+              className="mini-arrow-alt"
               strokeWidth={2.5}
               markerEnd="url(#arrowhead-alt)"
               opacity={0.85}

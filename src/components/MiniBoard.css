@@ -20,3 +20,33 @@
   text-align: center;
   font-style: italic;
 }
+
+/* ───── Board colours, driven by the theme ─────
+ *
+ * These were hardcoded as SVG fill/stroke attributes in the JSX, so the
+ * app-wide dark mode never reached them: every illustration on Rules,
+ * Landing, AI and Strategy kept painting light-mode colours on a dark page.
+ * A black piece measured 1.19:1 against the background and its outline
+ * 1.50:1 — the diagrams that teach the rules were the least readable thing
+ * in the app. CSS variables cannot be used in presentation attributes, so
+ * these have to be classes.
+ */
+
+.mini-edge { stroke: var(--mini-line); }
+.mini-edge.is-highlighted { stroke: var(--danger); }
+
+.mini-vertex { fill: var(--mini-vertex); }
+.mini-vertex.is-highlighted { fill: var(--danger); }
+
+.mini-piece.is-white { fill: var(--board-piece-light); stroke: var(--board-piece-stroke); }
+.mini-piece.is-black { fill: var(--board-piece-dark); stroke: var(--board-piece-dark-stroke); }
+
+/* Gold on both colours, matching the live board. */
+.mini-rok { fill: var(--board-rok); stroke: var(--board-rok-ink); stroke-width: 1; }
+
+/* The two move arrows have to stay distinguishable from each other AND from
+   the board. The alternate one was #2c3e50, a navy that is invisible on a
+   dark page. */
+.mini-arrow, .mini-arrow-head { stroke: var(--danger); fill: var(--danger); }
+.mini-arrow-alt, .mini-arrow-head-alt { stroke: var(--link); fill: var(--link); }
+.mini-arrow, .mini-arrow-alt { fill: none; }
