@@ -28,11 +28,14 @@ const Sidebar = ({ children, show_help = true, helpContent }) => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
-    // No minHeight here: every child below is absolutely positioned, so the
-    // wrapper needs no height of its own — and the `100vh` it used to carry
-    // made this flex item taller than the viewport, which is what pushed the
-    // whole document into being scrollable.
-    <div style={{ marginTop: '40px', position: 'relative', alignSelf: 'flex-start', display: 'flex', flexDirection: 'column', }}>
+    // `stretch` rather than the `minHeight: 100vh` this used to carry. The
+    // panel below is `height: 100%` of this wrapper, so the wrapper needs a
+    // real height or the drawer opens 240px wide and zero tall — which looks
+    // exactly like a dead button. But 100vh sized it against the VIEWPORT
+    // while sitting inside a row that is already shorter than that, so it
+    // overflowed the document and made the whole page scrollable. Stretching
+    // sizes it to the row instead: full height, nothing to overflow.
+    <div style={{ marginTop: '40px', position: 'relative', alignSelf: 'stretch', display: 'flex', flexDirection: 'column', }}>
       
       <button
         onClick={toggleSidebar}
