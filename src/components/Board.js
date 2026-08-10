@@ -1,219 +1,529 @@
 // components/Board.js
-import React, { useState, forwardRef } from 'react';
+//
+// The board is one <Cell> per vertex, and each cell is both draggable (if it
+// holds a piece the current player may move) and droppable. Two structural
+// details are load-bearing and easy to undo by accident:
+//
+//   1. The node dnd-kit MEASURES is never the node that MOVES. `setDrag` sits on
+//      the outer <g>, which stays put; the transform goes on an inner <g>. dnd-kit
+//      reads client rects off the measured node, and an SVG CSS transform is in
+//      user units, so a transformed measured node reports rects that are wrong by
+//      the viewBox scale.
+//   2. The droppable ref sits on a bare circle centred on the vertex — NOT on a
+//      group containing the label. The label used to inflate every drop rect and
+//      shift its centre ~9px right and ~5px down, which is most of why dropping
+//      on a phone felt like guesswork.
+import React, { useCallback, useEffect, useMemo, useRef, useState, forwardRef } from 'react';
 import { DndContext, useDraggable, useDroppable, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import './Board.css';
 import Data from '../helpers/position';
 import TurnIndicator from './TurnIndicator';
-import { homeBaseZones } from '../GameBoard';
+import { homeBaseZones, applyMoveToBoard } from '../GameBoard';
 
-// const getPosition = (vertexId, boardSize, vWidth) => {}
+// Android only — iOS Safari has no Vibration API and this is a silent no-op
+// there, which is why it needs no platform check.
+const buzz = (pattern) => {
+	try {
+		navigator.vibrate?.(pattern);
+	} catch {
+		/* some browsers throw when the page is not visible */
+	}
+};
 
-const Vertex = ({ vertexId, checker, position, canDrop, vWidth}, ref) => {
-    const { isOver, setNodeRef } = useDroppable({
-        id: vertexId,
-    });
+const PICK_UP = 8;
+const ENTER_TARGET = 6;
+const COMMIT = 14;
+const REJECT = [10, 40, 10];
 
-	const style = {
-		color: isOver ? 'green' : undefined,
-	};
+// A synthesized click can arrive after a real drag on Android. dnd-kit blocks
+// most of them for 50ms; this covers the stragglers.
+const TAP_AFTER_DRAG_MS = 250;
 
-    return (
+const Cell = ({
+	id, pos, checker, hitR, pieceR, rokR, movable, isOrigin, scale, onTap,
+}) => {
+	const { setNodeRef: setDrop } = useDroppable({ id });
+	const { setNodeRef: setDrag, listeners, attributes, transform } = useDraggable({
+		id,
+		disabled: !movable,
+		// Without this every vertex becomes a tab stop, including in the replay
+		// viewer where nothing is movable at all.
+		attributes: { tabIndex: movable ? 0 : -1, roleDescription: 'Tarati piece' },
+	});
+
+	// dnd-kit hands back a delta in client pixels. Inside a viewBox, `px` means
+	// user units, so it has to be divided by the scale or the piece travels at
+	// only ~59% of finger speed on a phone.
+	const dragging = !!transform;
+	const visualStyle = dragging
+		? {
+			transform: `translate3d(${transform.x / scale}px, ${transform.y / scale}px, 0)`,
+			willChange: 'transform',
+			filter: 'drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.7))',
+		}
+		: undefined;
+
+	return (
 		<g
-			ref={setNodeRef}
-			className={`vertex ${vertexId} ${isOver ? 'is-over' : ''} ${canDrop ? 'can-drop' : ''}`}
-			style={{
-				...style,
-				transform: `translate(${position.x}, ${position.y})`,
-				scale: 1
-			}}	
+			ref={setDrag}
+			className={`cell ${movable ? 'is-movable' : ''} ${dragging ? 'is-dragging' : ''} ${isOrigin ? 'is-origin' : ''}`}
+			onClick={() => onTap(id)}
+			{...listeners}
+			{...attributes}
 		>
-			<circle className="vertex-dot" r={vWidth/12} cx={position.x} cy={position.y} />
+			<g className="cell-visual" style={visualStyle}>
+				{checker ? (
+					<>
+						<circle
+							className={`piece ${checker.color === 'WHITE' ? 'is-white' : 'is-black'}`}
+							cx={pos.x}
+							cy={pos.y}
+							r={pieceR}
+						/>
+						{checker.isUpgraded ? (
+							<circle
+								className={`piece-rok ${checker.color === 'WHITE' ? 'is-white' : 'is-black'}`}
+								cx={pos.x}
+								cy={pos.y}
+								r={rokR}
+							/>
+						) : null}
+					</>
+				) : null}
+			</g>
 
-			{/* Colours come from CSS so the board follows the theme; the halo
-			    behind the label has to flip with the background or the text
-			    becomes unreadable in dark mode. */}
-			<text className="vertex-label" fontSize={vWidth/6} dominantBaseline="middle" paintOrder="stroke" strokeLineJoin="round" strokeWidth={5} x={position.x+vWidth/6} y={position.y+vWidth/6}>{vertexId}</text>
+			{/* The touch target, and the droppable. Invisible, symmetric, and much
+			    larger than the piece — `touch-action: none` only on cells that can
+			    actually move, so a swipe starting on an empty point still scrolls
+			    the page. The browser latches touch-action at touchstart, so this
+			    cannot be switched on once a drag begins. */}
+			<circle
+				ref={setDrop}
+				className="cell-hit"
+				cx={pos.x}
+				cy={pos.y}
+				r={hitR}
+				fill="none"
+				style={{ pointerEvents: 'all', touchAction: movable ? 'none' : 'manipulation' }}
+			/>
 		</g>
-        
-    );
+	);
 };
 
-const DraggableChecker = ({ id, color, isUpgraded, position, vWidth }) => {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
-        id: id,
-    });
-	const style = {
-        transform: transform ? CSS.Translate.toString(transform) : 'none',
-        zIndex: transform ? 1000 : 1,
-        filter: transform ? 'drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.7))' : 'none',
-        transition: 'filter 0.3s ease-in-out',
-        touchAction: 'manipulation', // Prevents the browser from handling touch events
-		scale:1
-    };
+const Board = forwardRef(({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize, promotions = [], flipped = false }, ref) => {
+	// `distance`, not `delay`. The old `{ delay: 80, tolerance: 10 }` cancelled
+	// any drag that travelled more than 10px inside 80ms — 125px/s, slower than
+	// any deliberate drag — so confident grabs were thrown away. dnd-kit also
+	// skips preventDefault for the whole delay window, which is what let the
+	// browser claim the gesture and scroll the page. `distance` additionally
+	// guarantees a stationary tap never starts a drag, which is what makes
+	// tap-to-move and dragging able to coexist.
+	const touchSensor = useSensor(TouchSensor, { activationConstraint: { distance: 8 } });
+	const mouseSensor = useSensor(MouseSensor, { activationConstraint: { distance: 4 } });
+	const sensors = useSensors(mouseSensor, touchSensor);
 
-    return (
-        <g
-            ref={setNodeRef}
-            style={style}
-            {...listeners}
-            {...attributes}
-        >
-            <circle
-                className={`piece ${color === 'WHITE' ? 'is-white' : 'is-black'}`}
-                cx={position.x}
-                cy={position.y}
-                r={vWidth/6}
-            />
-			{isUpgraded ?
-				<circle
-					className={`piece-rok ${color === 'WHITE' ? 'is-white' : 'is-black'}`}
-					cx={position.x}
-					cy={position.y}
-					r={vWidth/9}
-				/> : undefined }
-        </g>
-    );
-};
+	const svgRef = useRef(null);
+	const overIdRef = useRef(null);
+	const dragEndedAt = useRef(0);
 
-const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidth, boardSize, promotions = [], flipped = false }, ref) => {
-   
-	const touchSensor = useSensor(TouchSensor, {
-        // Short press-and-hold before a drag starts, so scrolling the page
-        // doesn't accidentally pick up a piece.
-        //
-        // `tolerance` is how far the finger may travel DURING `delay` without
-        // cancelling. It was 0, which meant the slightest wobble — and fingers
-        // always wobble — aborted the drag before it began, making the board
-        // feel broken on a phone. 10px absorbs normal jitter while still
-        // distinguishing a hold from a swipe.
-        activationConstraint: {
-            delay: 80,
-            tolerance: 10,
-        },
-    });
+	const [scale, setScale] = useState(1);
+	const [selected, setSelected] = useState(null);
+	const [activeId, setActiveId] = useState(null);
+	const [overId, setOverId] = useState(null);
 
-    const mouseSensor = useSensor(MouseSensor);
-    const sensors = useSensors(mouseSensor, touchSensor);
+	const aspect = 1.2;
+	const layoutW = boardSize / aspect;
+	const dims = useMemo(() => ({ w: layoutW, h: boardSize }), [layoutW, boardSize]);
 
-    // eslint-disable-next-line no-unused-vars
-    const [draggedChecker, setDraggedChecker] = useState(null);
-    // eslint-disable-next-line no-unused-vars
-    const [highlightedVertices, setHighlightedVertices] = useState([]);
+	const positions = useMemo(() => {
+		const map = new Map();
+		for (const v of gameBoard.vertices) map.set(v, Data.getPosition(v, dims, vWidth, flipped));
+		return map;
+	}, [gameBoard, dims, vWidth, flipped]);
 
-	const handleDragEnd = (event) => {
-		const { active, over } = event;
+	// The layout leaves ~26% of its width empty. Cropping to what is actually
+	// drawn scales the whole board up on a phone (where the SVG is width-bound)
+	// and changes nothing on desktop (where it is height-bound and the height is
+	// untouched). Derived from the real positions so it cannot drift.
+	const viewBox = useMemo(() => {
+		let minX = Infinity;
+		let maxX = -Infinity;
+		for (const p of positions.values()) {
+			if (p.x < minX) minX = p.x;
+			if (p.x > maxX) maxX = p.x;
+		}
+		const ringPad = vWidth / 2.6;              // widest ring drawn around a vertex
+		const labelPad = vWidth * 0.48 + 6;        // label offset + up to 3 glyphs + halo
+		const x0 = Math.max(0, minX - ringPad);
+		const x1 = Math.min(layoutW, maxX + labelPad);
+		return { x0, width: x1 - x0, str: `${x0} 0 ${x1 - x0} ${boardSize}` };
+	}, [positions, vWidth, boardSize, layoutW]);
 
-		if (!(active && over)) return;
-
-		// A drop onto the piece's own vertex is the §6.3 in-place promotion.
-		// It is only ever legal when the player has no ordinary move, so a
-		// stray tap can never cost anyone a turn they wanted to spend
-		// elsewhere — and when it isn't legal this behaves exactly as before.
-		if (active.id === over.id) {
-			if (isValidMove(gameState, active.id, active.id)) {
-				applyMove(active.id, active.id);
+	// Every legal move for the side to move, keyed by origin. Derived from the
+	// `isValidMove` prop rather than importing the engine, so it inherits each
+	// page's own guards: GamePage's aiOwnsTurn, OnlineGamePage's isMyTurn, and
+	// ReplayViewer's constant false (which makes the replay board inert).
+	const moveMap = useMemo(() => {
+		const map = new Map();
+		for (const from of Object.keys(gameState.checkers)) {
+			const tos = new Set();
+			for (const to of gameBoard.vertices) {
+				if (to !== from && isValidMove(gameState, from, to)) tos.add(to);
 			}
+			// §6.3 in-place promotion: legal only when nothing else is.
+			if (isValidMove(gameState, from, from)) tos.add(from);
+			if (tos.size) map.set(from, tos);
+		}
+		return map;
+	}, [gameState, gameBoard, isValidMove]);
+
+	const origin = activeId ?? selected;
+	const destinations = useMemo(() => (origin ? moveMap.get(origin) ?? null : null), [origin, moveMap]);
+
+	// Drop a selection the moment its piece stops being movable — but NOT on
+	// every gameState identity change, or online polling (a fresh object every
+	// 1.5s) would clear the selection out from under the player.
+	useEffect(() => {
+		if (selected && !moveMap.has(selected)) setSelected(null);
+	}, [moveMap, selected]);
+
+	const readScale = useCallback(() => {
+		const svg = svgRef.current;
+		if (!svg) return 1;
+		// getScreenCTM folds in the viewBox scale, page zoom and any ancestor
+		// transform (GamePage keeps a react-spring scale() on .game-area), and
+		// reports in the same space as getBoundingClientRect — which is the space
+		// dnd-kit's rects live in. A viewBox/clientWidth ratio would be wrong on
+		// desktop, where preserveAspectRatio letterboxes on height instead.
+		const m = svg.getScreenCTM();
+		if (m && m.a) return m.a;
+		const r = svg.getBoundingClientRect();
+		return r.width && viewBox.width ? r.width / viewBox.width : 1;
+	}, [viewBox.width]);
+
+	useEffect(() => {
+		const svg = svgRef.current;
+		if (!svg) return undefined;
+		const update = () => setScale(readScale());
+		update();
+		if (typeof ResizeObserver === 'undefined') return undefined;
+		const ro = new ResizeObserver(update);
+		ro.observe(svg);
+		return () => ro.disconnect();
+	}, [readScale, boardSize, vWidth]);
+
+	const commit = useCallback((from, to) => {
+		if (!isValidMove(gameState, from, to)) {
+			buzz(REJECT);
 			return;
 		}
+		buzz(COMMIT);
+		setSelected(null);
+		applyMove(from, to);
+	}, [gameState, isValidMove, applyMove]);
 
-		if (isValidMove(gameState, active?.id, over?.id)) {
-			applyMove(active.id, over.id);
+	// Nearest LEGAL vertex to the fingertip, within a snap radius. Restricting
+	// candidates to the origin's destinations makes targets magnetic and makes
+	// it impossible to hover an illegal one; past the cutoff the drop cancels
+	// cleanly rather than teleporting the piece somewhere unintended.
+	const collisionDetection = useCallback((args) => {
+		const { droppableContainers, droppableRects, pointerCoordinates, collisionRect } = args;
+		const from = args.active?.id ?? selected;
+		const allowed = from ? moveMap.get(from) : null;
+		if (!allowed || allowed.size === 0) return [];
+
+		const point = pointerCoordinates
+			?? (collisionRect
+				? { x: collisionRect.left + collisionRect.width / 2, y: collisionRect.top + collisionRect.height / 2 }
+				: null);
+		if (!point) return [];
+
+		let best = null;
+		let bestDistance = Infinity;
+		for (const container of droppableContainers) {
+			if (!allowed.has(container.id)) continue;
+			const rect = droppableRects.get(container.id);
+			if (!rect) continue;
+			const distance = Math.hypot(
+				rect.left + rect.width / 2 - point.x,
+				rect.top + rect.height / 2 - point.y
+			);
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				best = container;
+			}
 		}
+		const cutoff = 0.75 * vWidth * scale;
+		return best && bestDistance <= cutoff
+			? [{ id: best.id, data: { droppableContainer: best, value: bestDistance } }]
+			: [];
+	}, [selected, moveMap, vWidth, scale]);
+
+	const handleDragStart = ({ active }) => {
+		setScale(readScale());
+		setActiveId(active.id);
+		setSelected(active.id);
+		overIdRef.current = null;
+		setOverId(null);
+		buzz(PICK_UP);
 	};
 
-	const aspect=1.2;
+	const handleDragOver = ({ over }) => {
+		const id = over?.id ?? null;
+		// The one drop-zone signal that still works while a finger covers the target.
+		if (id && id !== overIdRef.current) buzz(ENTER_TARGET);
+		overIdRef.current = id;
+		setOverId(id);
+	};
 
-    return (
-        <div ref={ref} className="board-container">
-			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+	const clearDrag = () => {
+		setActiveId(null);
+		setOverId(null);
+		overIdRef.current = null;
+		dragEndedAt.current = Date.now();
+	};
+
+	const handleDragEnd = ({ active, over }) => {
+		clearDrag();
+		// A drag that lands nowhere keeps the selection, so a fumbled gesture
+		// degrades into the tap-to-move flow instead of doing nothing.
+		if (!over) return;
+		commit(active.id, over.id);
+	};
+
+	const handleTap = useCallback((id) => {
+		if (Date.now() - dragEndedAt.current < TAP_AFTER_DRAG_MS) return;
+		if (selected) {
+			// Checked before the deselect branch so the §6.3 self-target, where
+			// the only legal destination is the selected piece itself, commits.
+			if (moveMap.get(selected)?.has(id)) {
+				commit(selected, id);
+				return;
+			}
+			if (id === selected) {
+				setSelected(null);
+				return;
+			}
+		}
+		if (moveMap.has(id)) {
+			setSelected(id);
+			buzz(PICK_UP);
+			return;
+		}
+		setSelected(null);
+	}, [selected, moveMap, commit]);
+
+	// The hit circles tile the board but leave gaps between them; without this a
+	// tap into a gap does nothing, which reads as an unresponsive board.
+	const handleBackgroundTap = useCallback((event) => {
+		if (Date.now() - dragEndedAt.current < TAP_AFTER_DRAG_MS) return;
+		const svg = svgRef.current;
+		const ctm = svg?.getScreenCTM();
+		if (!ctm) {
+			setSelected(null);
+			return;
+		}
+		const point = svg.createSVGPoint();
+		point.x = event.clientX;
+		point.y = event.clientY;
+		const { x, y } = point.matrixTransform(ctm.inverse());
+
+		let best = null;
+		let bestDistance = Infinity;
+		for (const [vertexId, p] of positions) {
+			const distance = Math.hypot(p.x - x, p.y - y);
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				best = vertexId;
+			}
+		}
+		if (best && bestDistance <= 0.62 * vWidth) handleTap(best);
+		else setSelected(null);
+	}, [positions, vWidth, handleTap]);
+
+	// Which pieces this move would convert. Tarati's striking rule is not
+	// guessable from the board, so showing it is most of what a stranger needs.
+	const strikePreview = useMemo(() => {
+		if (!origin || !overId || !destinations?.has(overId)) return [];
+		const after = applyMoveToBoard(gameState, origin, overId);
+		const converted = [];
+		for (const [vertexId, before] of Object.entries(gameState.checkers)) {
+			const now = after.checkers[vertexId];
+			if (now && now.color !== before.color) converted.push(vertexId);
+		}
+		return converted;
+	}, [origin, overId, destinations, gameState]);
+
+	const aiming = !!origin;
+
+	return (
+		<div ref={ref} className="board-container">
+			<DndContext
+				sensors={sensors}
+				collisionDetection={collisionDetection}
+				// dnd-kit scrolls the nearest scrollable ancestor — including the
+				// document — when a drag nears the viewport edge. D1-D4 sit at the
+				// extreme top and bottom, so reaching them triggered it every time.
+				autoScroll={false}
+				onDragStart={handleDragStart}
+				onDragOver={handleDragOver}
+				onDragEnd={handleDragEnd}
+				onDragCancel={clearDrag}
+			>
+				{/* No height attribute: `height="auto"` is not a valid SVG length
+				    (the browser logged an error on every render) and resolved to
+				    100%, stretching the element to the container and leaving a
+				    screenful of dead space below the board on a phone. Intrinsic
+				    sizing comes from `height: auto` in Board.css instead. */}
 				<svg
-					viewBox={`0 0 ${boardSize/aspect} ${boardSize}`}
+					ref={svgRef}
+					viewBox={viewBox.str}
 					width="100%"
-					height="auto"
-					className='board-svg'
+					className={`board-svg ${aiming ? 'is-aiming' : ''}`}
 				>
-					{/* Home bases, drawn first so everything else sits on top.
-					    A cob promotes the moment it lands on any of these four
-					    points, and two of them per base sit on the circumference
-					    looking exactly like ordinary ring points — this zone is
-					    what makes that rule visible instead of surprising. */}
+					{/* Catches taps that land between hit circles. First in document
+					    order, so every interactive element is hit-tested before it. */}
+					<rect
+						className="board-bg"
+						x={viewBox.x0}
+						y={0}
+						width={viewBox.width}
+						height={boardSize}
+						fill="none"
+						style={{ pointerEvents: 'all' }}
+						onClick={handleBackgroundTap}
+					/>
+
+					{/* Home bases. A cob promotes the moment it lands on any of these
+					    four points, and two of them per base sit on the circumference
+					    looking exactly like ordinary ring points — this zone is what
+					    makes that rule visible instead of surprising. */}
 					{homeBaseZones.map(({ color, points }) => (
 						<polygon
 							key={`home-${color}`}
 							className={`home-zone ${color === 'WHITE' ? 'is-white' : 'is-black'}`}
-							points={points
-								.map((v) => {
-									const p = Data.getPosition(v, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
-									return `${p.x},${p.y}`;
-								})
-								.join(' ')}
+							points={points.map((v) => { const p = positions.get(v); return `${p.x},${p.y}`; }).join(' ')}
 							style={{ pointerEvents: 'none' }}
 						/>
 					))}
 
-					{/* Draw Edges */}
 					{gameBoard.edges.map(([from, to], index) => {
-						const fromPos = Data.getPosition(from, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
-						const toPos = Data.getPosition(to, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
+						const a = positions.get(from);
+						const b = positions.get(to);
 						return (
 							<line
 								key={`edge-${index}`}
-								x1={fromPos.x}
-								y1={fromPos.y}
-								x2={toPos.x}
-								y2={toPos.y}
+								x1={a.x}
+								y1={a.y}
+								x2={b.x}
+								y2={b.y}
 								className="board-edge"
 								strokeWidth="2"
-							/>
-						);
-					})}
-
-					{/* Draw Vertices */}
-					{gameBoard.vertices.map((vertexId) => (
-						<Vertex
-							key={vertexId}
-							vertexId={vertexId}
-							checker={gameState.checkers[vertexId]}
-							position={Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth, flipped)}
-							canDrop={false} //draggedChecker && isValidMove(draggedChecker, vertexId)}
-							vWidth={vWidth}
-						/>
-					))}
-
-					{/* Highlight pieces that can be promoted in place (§6.3).
-					    pointerEvents:none so this never intercepts a drag. */}
-					{promotions.map((vertexId) => {
-						const p = Data.getPosition(vertexId, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
-						return (
-							<circle
-								key={`promote-ring-${vertexId}`}
-								className="promote-ring"
-								cx={p.x}
-								cy={p.y}
-								r={vWidth/4}
 								style={{ pointerEvents: 'none' }}
 							/>
 						);
 					})}
 
-					{/* Draw Draggable Checkers */}
-					{Object.entries(gameState.checkers).map(([id, checker]) => (
-						<DraggableChecker
-							key={id}
-							id={id}
-							color={checker.color}
-							isUpgraded={checker.isUpgraded}
-							position={Data.getPosition(id, {w:boardSize/aspect,h:boardSize}, vWidth, flipped)}
-							vWidth={vWidth}
+					{gameBoard.vertices.map((vertexId) => {
+						const p = positions.get(vertexId);
+						return (
+							<g key={`v-${vertexId}`} className="vertex-mark" style={{ pointerEvents: 'none' }}>
+								<circle className="vertex-dot" cx={p.x} cy={p.y} r={vWidth / 12} />
+								{/* The halo behind the label has to flip with the background
+								    or the text becomes unreadable in dark mode. */}
+								<text
+									className="vertex-label"
+									fontSize={vWidth / 6}
+									dominantBaseline="middle"
+									paintOrder="stroke"
+									strokeLinejoin="round"
+									strokeWidth={5}
+									x={p.x + vWidth / 6}
+									y={p.y + vWidth / 6}
+								>
+									{vertexId}
+								</text>
+							</g>
+						);
+					})}
+
+					{/* ── Hint layer. Everything here is decoration and must never
+					    intercept a pointer, or it would shadow the cells above it. ── */}
+					<g className="hint-layer" style={{ pointerEvents: 'none' }}>
+						{/* "These are yours to move" — the answer to a stranger's first
+						    question, shown only while nothing is picked up. */}
+						{!aiming && [...moveMap.keys()].map((vertexId) => {
+							const p = positions.get(vertexId);
+							return <circle key={`movable-${vertexId}`} className="hint-movable" cx={p.x} cy={p.y} r={vWidth / 4.8} />;
+						})}
+
+						{origin && positions.get(origin) ? (
+							<circle
+								className="hint-origin"
+								cx={positions.get(origin).x}
+								cy={positions.get(origin).y}
+								r={vWidth / 3.4}
+							/>
+						) : null}
+
+						{/* Long, and nowhere near the fingertip — the only "you are in a
+						    drop zone" signal a covering finger cannot hide. */}
+						{origin && overId && destinations?.has(overId) && overId !== origin ? (
+							<line
+								className="hint-connector"
+								x1={positions.get(origin).x}
+								y1={positions.get(origin).y}
+								x2={positions.get(overId).x}
+								y2={positions.get(overId).y}
+							/>
+						) : null}
+
+						{destinations ? [...destinations].map((vertexId) => {
+							const p = positions.get(vertexId);
+							return (
+								<circle
+									key={`dest-${vertexId}`}
+									className={`hint-dest ${overId === vertexId ? 'is-over' : ''} ${vertexId === origin ? 'is-self' : ''}`}
+									cx={p.x}
+									cy={p.y}
+									r={vWidth / 2.6}
+								/>
+							);
+						}) : null}
+
+						{strikePreview.map((vertexId) => {
+							const p = positions.get(vertexId);
+							return <circle key={`strike-${vertexId}`} className="hint-strike" cx={p.x} cy={p.y} r={vWidth / 4.4} />;
+						})}
+
+						{/* §6.3: no ordinary move exists, so a dead piece may be promoted
+						    in place. */}
+						{promotions.map((vertexId) => {
+							const p = positions.get(vertexId);
+							return <circle key={`promote-ring-${vertexId}`} className="promote-ring" cx={p.x} cy={p.y} r={vWidth / 4} />;
+						})}
+					</g>
+
+					{gameBoard.vertices.map((vertexId) => (
+						<Cell
+							key={vertexId}
+							id={vertexId}
+							pos={positions.get(vertexId)}
+							checker={gameState.checkers[vertexId]}
+							hitR={vWidth / 2.4}
+							pieceR={vWidth / 6}
+							rokR={vWidth / 9}
+							movable={moveMap.has(vertexId)}
+							isOrigin={vertexId === origin}
+							scale={scale}
+							onTap={handleTap}
 						/>
 					))}
 				</svg>
 			</DndContext>
-			{/* No ordinary move exists, so the only legal continuation is an
-			    in-place promotion (§6.3). Dropping a piece on itself works too,
-			    but dnd-kit's collision detection is unreliable for a resting
-			    tap — this button is the path that always works, on touch too. */}
+
+			{/* Dropping a piece on itself and tapping it twice both work, but this
+			    button is the path that always works, on every input device. */}
 			{promotions.length > 0 && (
 				<div className="promote-bar" role="status">
 					<span className="promote-hint">No moves left — promote a dead piece to play on.</span>
@@ -229,10 +539,10 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 					))}
 				</div>
 			)}
-			{/* viewWidth -> vWidth */}
-			<TurnIndicator height={200} currentTurn={gameState.currentTurn} vWidth={boardSize/2}/>
-        </div>
-    );
+
+			<TurnIndicator currentTurn={gameState.currentTurn} yourMove={moveMap.size > 0} />
+		</div>
+	);
 });
 
 export default Board;

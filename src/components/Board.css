@@ -3,12 +3,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-grow: 1;
-	height:100%;
+    flex: 1;
+	min-height: 0;
+	height: 100%;
+	/* .game-area centres its items, so without this the container shrink-wraps
+	   the board instead of filling the width — and the board is width-bound on
+	   a phone, so every pixel here is a bigger piece and a bigger touch target. */
+	width: 100%;
+	box-sizing: border-box;
 	padding: 20px;
 	/* Anchors .promote-bar. Safe: the only other positioned descendant is the
 	   turn indicator, which is position:fixed and so unaffected. */
 	position: relative;
+	flex-direction: column;
+	gap: 10px;
 }
 
 @media (max-width: 768px) {
@@ -22,12 +30,29 @@
 	max-height: 100%;
 }
 
-.vertex circle {
-	cursor: pointer;
+.board-svg {
+	overflow: visible;
+	display: block;
+	width: 100%;
+	/* The `height="auto"` ATTRIBUTE resolves to 100% per the SVG sizing rules,
+	   which stretched the element to the full container height and left ~280px
+	   of empty box below the board on a phone. In CSS, `auto` really is
+	   intrinsic: the element now hugs the viewBox ratio. Desktop is unchanged,
+	   because max-height clamps it to exactly the same box as before. */
+	height: auto;
+	/* A press-and-hold on an SVG shape can raise iOS's selection/callout UI
+	   in the middle of a drag. */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+@media (min-width: 769px) {
+	.board-svg { padding-bottom: 20px; }
 }
 
 /* Board position labels should not be selectable or intercept pointer events */
-.vertex text {
+.vertex-label {
 	user-select: none;
 	-webkit-user-select: none;
 	pointer-events: none;
@@ -45,18 +70,30 @@
 	outline: none;
 }
 
-.vertex.is-over circle {
-	fill: var(--board-drop);
+/* --- Cells: the touch target and the drop target are the same circle -------
+ *
+ * `.cell-hit` must stay invisible. It carries no fill by attribute, and NOTHING
+ * here may set one — an earlier `.vertex circle { fill: ... }` style rule would
+ * have painted these 56px circles solid green across the whole board. Scope
+ * every paint rule to `.vertex-dot` / `.piece` instead of bare `circle`.
+ */
+.cell-hit {
+	fill: none;
+	pointer-events: all;
 }
 
-.vertex.can-drop circle {
-	fill: var(--accent);
+.cell.is-movable .cell-hit { cursor: grab; }
+.cell.is-movable:active .cell-hit { cursor: grabbing; }
+
+.cell-visual {
+	transition: filter 0.3s ease-in-out;
 }
 
-.board-svg {
-	padding-bottom: 20px;
-    overflow: visible;
-}
+/* The piece left behind reads as "where I came from" and makes the one under
+   the finger read as lifted. */
+.cell.is-dragging .cell-visual { pointer-events: none; }
+
+.board-bg { fill: none; }
 
 /* --- §6.3 in-place promotion ------------------------------------------- */
 
@@ -64,6 +101,7 @@
 	fill: none;
 	stroke: #f5b301;
 	stroke-width: 3;
+	vector-effect: non-scaling-stroke;
 	opacity: 0.9;
 	animation: promotePulse 1.4s ease-in-out infinite;
 }
@@ -124,6 +162,7 @@
 
 .promote-btn:hover { filter: brightness(1.06); }
 .promote-btn:active { transform: translateY(1px); }
+
 /* --- Board colours, driven by the theme -------------------------------- */
 
 .board-edge { stroke: var(--board-line); }
@@ -141,8 +180,6 @@
 .piece-rok.is-white { fill: var(--board-piece-inner-on-light); }
 .piece-rok.is-black { fill: var(--board-piece-inner-on-dark); }
 
-.vertex.is-over .vertex-dot { fill: var(--board-drop); }
-
 /* The two home bases. Landing on the opponent's is what promotes a cob, so
    this zone is a rule made visible, not decoration. */
 .home-zone {
@@ -150,4 +187,84 @@
 	stroke: var(--board-home-line);
 	stroke-width: 1.5;
 	stroke-linejoin: round;
+}
+
+/* --- Move hints --------------------------------------------------------
+ *
+ * A fingertip covers roughly 44px, so every signal here is either larger than
+ * the piece it surrounds or drawn somewhere else entirely. Strokes use
+ * `non-scaling-stroke` so a line is the same weight on a phone as on a
+ * projector, instead of thinning out with the board scale.
+ */
+.hint-layer * { vector-effect: non-scaling-stroke; }
+
+/* "These are yours to move" — the answer to a stranger's first question. */
+.hint-movable {
+	fill: none;
+	stroke: var(--accent);
+	stroke-width: 1.5;
+	opacity: 0.38;
+}
+
+.hint-origin {
+	fill: none;
+	stroke: var(--accent);
+	stroke-width: 2.5;
+	opacity: 0.95;
+}
+
+/* Long, and nowhere near the fingertip. */
+.hint-connector {
+	stroke: var(--accent);
+	stroke-width: 3;
+	stroke-linecap: round;
+	opacity: 0.85;
+}
+
+.hint-dest {
+	fill: var(--board-drop);
+	fill-opacity: 0;
+	stroke: var(--board-drop);
+	stroke-width: 2.5;
+	opacity: 0.8;
+	transition: fill-opacity 120ms ease, stroke-width 120ms ease, opacity 120ms ease;
+}
+
+/* Animating opacity and stroke-width rather than transform or r: SVG
+   transform-box defaults vary between engines, and animated `r` is patchy. */
+.hint-dest.is-over {
+	fill-opacity: 0.24;
+	stroke-width: 4.5;
+	opacity: 1;
+}
+
+/* The §6.3 self-target, where the only legal move is to promote in place. */
+.hint-dest.is-self {
+	stroke: var(--accent);
+	fill: var(--accent);
+}
+
+/* Every enemy this move would convert. Tarati's striking rule is not
+   guessable from the board, so this is the single most explanatory hint. */
+.hint-strike {
+	fill: none;
+	stroke: var(--accent);
+	stroke-width: 2.5;
+	stroke-dasharray: 5 4;
+	opacity: 0.95;
+}
+
+/* Recede the scaffolding while aiming so the rings carry the eye. */
+.board-svg.is-aiming .board-edge { opacity: 0.4; }
+.board-svg.is-aiming .vertex-dot { opacity: 0.45; }
+.board-svg .board-edge,
+.board-svg .vertex-dot { transition: opacity 140ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+	.promote-ring { animation: none; opacity: 0.9; }
+	.promote-bar { animation: none; }
+	.hint-dest,
+	.cell-visual,
+	.board-svg .board-edge,
+	.board-svg .vertex-dot { transition: none; }
 }
