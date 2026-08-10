@@ -118,10 +118,11 @@ a.spec-card:hover {
 
 .spec-piece { stroke: var(--board-piece-stroke); stroke-width: 1.5; }
 .spec-piece.is-white { fill: var(--board-piece-light); }
-.spec-piece.is-black { fill: var(--board-piece-dark); stroke: var(--board-piece-stroke); }
+/* Dark pieces need the light rim, not the dark one, or they vanish into the
+   board when the wall is projected on a dark ground. */
+.spec-piece.is-black { fill: var(--board-piece-dark); stroke: var(--board-piece-dark-stroke); }
 
-.spec-rok.is-white { fill: var(--board-piece-inner-on-light); }
-.spec-rok.is-black { fill: var(--board-piece-inner-on-dark); }
+.spec-rok { fill: var(--board-rok); stroke: var(--board-rok-ink); stroke-width: 1; }
 
 .spec-players {
   margin-top: 12px;

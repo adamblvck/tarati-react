@@ -177,8 +177,15 @@
 
 .piece.is-white { fill: var(--board-piece-light); stroke: var(--board-piece-stroke); }
 .piece.is-black { fill: var(--board-piece-dark);  stroke: var(--board-piece-dark-stroke); }
-.piece-rok.is-white { fill: var(--board-piece-inner-on-light); }
-.piece-rok.is-black { fill: var(--board-piece-inner-on-dark); }
+
+/* Same gold on both colours — see --board-rok. The outline is what keeps it
+   legible on a near-white piece, where gold alone is only 1.6:1. */
+.piece-rok {
+	fill: var(--board-rok);
+	stroke: var(--board-rok-ink);
+	stroke-width: 1.5;
+	vector-effect: non-scaling-stroke;
+}
 
 /* The two home bases. Landing on the opponent's is what promotes a cob, so
    this zone is a rule made visible, not decoration. */

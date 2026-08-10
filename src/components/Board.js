@@ -512,7 +512,7 @@ const Board = forwardRef(({ gameState, gameBoard, isValidMove, applyMove, vWidth
 							checker={gameState.checkers[vertexId]}
 							hitR={vWidth / 2.4}
 							pieceR={vWidth / 6}
-							rokR={vWidth / 9}
+							rokR={vWidth / 13}
 							movable={moveMap.has(vertexId)}
 							isOrigin={vertexId === origin}
 							scale={scale}

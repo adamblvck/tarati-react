@@ -61,8 +61,17 @@
   --board-piece-dark: #1b1b1b;
   --board-piece-stroke: #222222;
   --board-piece-dark-stroke: #222222;
-  --board-piece-inner-on-light: #1b1b1b;
-  --board-piece-inner-on-dark: #ffffff;
+  /* A rok is marked in gold on BOTH colours. It used to be a disc of the
+     opposing piece colour, which meant a black rok was a dark disc with a
+     white centre — indistinguishable at a glance from a white piece with a
+     dark rim. Gold belongs to neither side, so it can only mean "promoted". */
+  --board-rok: #e8a300;
+  --board-rok-ink: #4a3400;
+  /* MiniBoard illustrations sit on a raised card, not on the page, so they
+     need their own line weights — the board tokens are tuned against the
+     page background and wash out against a lighter card. */
+  --mini-line: #8a8a8a;
+  --mini-vertex: #6f6f6f;
   --board-label: #333333;
   --board-label-halo: #ffffff;
   --board-drop: #4caf50;
@@ -118,11 +127,17 @@
   --board-line: #39404b;
   --board-vertex: #4b5461;
   --board-piece-light: #f2f3f5;
-  --board-piece-dark: #23262d;
+  /* #23262d measured 1.25:1 against the page — a black piece was very nearly
+     a hole in the board, and only its rim gave it away. Lifted to 2.5:1 so it
+     reads as an object, while staying 6.6:1 away from a white piece so the
+     two sides are never in doubt. */
+  --board-piece-dark: #4b5566;
   --board-piece-stroke: #05070a;
-  --board-piece-dark-stroke: #737d8c;
-  --board-piece-inner-on-light: #23262d;
-  --board-piece-inner-on-dark: #f2f3f5;
+  --board-piece-dark-stroke: #8792a3;
+  --board-rok: #f5b301;
+  --board-rok-ink: #2a1e00;
+  --mini-line: #7d8798;
+  --mini-vertex: #98a2b3;
   --board-label: #aeb6c0;
   --board-label-halo: #0f1115;
   --board-drop: #6ee787;
