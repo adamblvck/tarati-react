@@ -1,7 +1,22 @@
 /* ───── Game Page ───── */
 
+/* A DEFINITE height here is what everything below depends on.
+ *
+ * `height: 100%` only resolves against an ancestor with a definite height, and
+ * the board is now sized intrinsically from its viewBox — so if this chain ever
+ * falls back to `auto`, .board-container sizes to its content while
+ * useBoardSize measures .board-container to decide how big that content should
+ * be, and the two chase each other.
+ *
+ * The height used to be `calc(100vh - 64px)`, but the nav wraps on a phone and
+ * the header is nearer 78px, so the page overflowed by ~14px and the whole
+ * document became scrollable — which matters because a scroll gesture competes
+ * with a drag, and the iOS URL bar moving fires `resize`, which dnd-kit treats
+ * as a reason to cancel the drag. --header-h is published by Header.js from the
+ * real measured height; `svh` is the viewport with browser chrome showing, and
+ * unlike `dvh` it does not resize (and so cancel drags) as the URL bar hides. */
 .game-page {
-  height: calc(100vh - 64px);
+  height: calc(100svh - var(--header-h, 64px));
   overflow: hidden;
 }
 
@@ -299,6 +314,7 @@
   box-shadow: -2px 0 6px rgba(0,0,0,0.06);
   z-index: 37;
   padding: 0;
+  touch-action: manipulation;
   pointer-events: auto;
   transition: right 0.25s ease;
 }
@@ -430,4 +446,17 @@
 
 .ms-capture {
   color: var(--danger);
+}
+
+/* ───── Phones: keep the floating controls off the board ─────
+ *
+ * The move-history tab is pinned to the vertical centre of the right edge,
+ * which is exactly where a right thumb drags. Once the board's touch targets
+ * grew to ~67px it started covering C10's, so on a phone it moves to the top
+ * corner where there is empty space above the board anyway. */
+@media (max-width: 768px) {
+  .history-toggle-btn {
+    top: 8px;
+    transform: none;
+  }
 }

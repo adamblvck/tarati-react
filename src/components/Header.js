@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -17,8 +17,25 @@ const Header = () => {
 
   const tabClass = ({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`;
 
+  // Publish the header's real height as --header-h. The game page needs a
+  // definite height to size the board against, and it used to guess `64px` —
+  // but the nav wraps on a phone and the header is nearer 78px, so the guess
+  // left the whole document scrollable. Measuring is the only version of this
+  // that stays correct as the nav grows or the breakpoints move.
+  const headerRef = useRef(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return undefined;
+    const publish = () => document.documentElement.style.setProperty('--header-h', `${el.offsetHeight}px`);
+    publish();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <header className="site-header">
+    <header className="site-header" ref={headerRef}>
       <NavLink to="/" className="header-logo">
         Tarati
       </NavLink>

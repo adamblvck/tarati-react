@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import AI from '../AI';
 import { gameBoard, applyMoveToBoard } from '../GameBoard';
 import { useBoardSize } from '../hooks/useBoardSize';
+import useNoOverscroll from '../hooks/useNoOverscroll';
 
 import Board from '../components/Board';
 import Sidebar from '../components/Sidebar';
@@ -120,6 +121,7 @@ const GamePage = () => {
     const boardRef = useRef(null);
 	const moveSheetBodyRef = useRef(null);
 	const { boardSize, vWidth } = useBoardSize(boardRef);
+	useNoOverscroll();
 
 	// ── Board entrance animation ──
 	const [boardMounted, setBoardMounted] = useState(false);

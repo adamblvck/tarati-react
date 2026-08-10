@@ -2,6 +2,10 @@
 
 .app-shell {
   min-height: 100vh;
+  /* `svh` is the viewport with the browser chrome SHOWING, so the page never
+     overflows on iOS. Deliberately not `dvh`: that resizes as the URL bar
+     hides, and a resize cancels an in-flight drag. */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -10,6 +14,10 @@
 
 .app-main {
   flex: 1;
+  /* A flex item defaults to `min-height: auto`, so it refuses to shrink below
+     its content — which let one oversized descendant push the whole document
+     past the viewport and make it scrollable. */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   position: relative;

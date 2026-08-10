@@ -28,7 +28,11 @@ const Sidebar = ({ children, show_help = true, helpContent }) => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   return (
-    <div style={{ marginTop: '40px', position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', }}>
+    // No minHeight here: every child below is absolutely positioned, so the
+    // wrapper needs no height of its own — and the `100vh` it used to carry
+    // made this flex item taller than the viewport, which is what pushed the
+    // whole document into being scrollable.
+    <div style={{ marginTop: '40px', position: 'relative', alignSelf: 'flex-start', display: 'flex', flexDirection: 'column', }}>
       
       <button
         onClick={toggleSidebar}

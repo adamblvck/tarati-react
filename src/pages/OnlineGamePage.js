@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import AI from "../AI";
 import { gameBoard, applyMoveToBoard } from "../GameBoard";
 import { useBoardSize } from "../hooks/useBoardSize";
+import useNoOverscroll from "../hooks/useNoOverscroll";
 import Board from "../components/Board";
 import { API_CONFIG } from "../config/apiConfig";
 import {
@@ -52,6 +53,7 @@ const OnlineGamePage = () => {
 
   const boardRef = useRef(null);
   const { boardSize, vWidth } = useBoardSize(boardRef);
+  useNoOverscroll();
 
   // --- load + poll ---------------------------------------------------------
 
