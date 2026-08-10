@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom";
 
 import Data from "../helpers/position";
-import { gameBoard } from "../GameBoard";
+import { gameBoard, homeBaseZones } from "../GameBoard";
 import { listLiveGames, getSpectateGame, resultText } from "../lib/gamesApi";
 import "./SpectatePage.css";
 
@@ -31,6 +31,15 @@ const MiniBoard = ({ state, size = 260 }) => {
 
   return (
     <svg viewBox={`0 0 ${w} ${size}`} className="spec-board" role="img" aria-label="Tarati board">
+      {/* Home bases. A spectator reading the board from across a room has no
+          other way to tell why a cob promoted on C7. */}
+      {homeBaseZones.map(({ color, points }) => (
+        <polygon
+          key={`home${color}`}
+          className={`home-zone ${color === "WHITE" ? "is-white" : "is-black"}`}
+          points={points.map((v) => { const p = Data.getPosition(v, dims, vWidth); return `${p.x},${p.y}`; }).join(" ")}
+        />
+      ))}
       {gameBoard.edges.map(([from, to], i) => {
         const a = Data.getPosition(from, dims, vWidth);
         const b = Data.getPosition(to, dims, vWidth);

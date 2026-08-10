@@ -142,3 +142,12 @@
 .piece-rok.is-black { fill: var(--board-piece-inner-on-dark); }
 
 .vertex.is-over .vertex-dot { fill: var(--board-drop); }
+
+/* The two home bases. Landing on the opponent's is what promotes a cob, so
+   this zone is a rule made visible, not decoration. */
+.home-zone {
+	fill: var(--board-home-fill);
+	stroke: var(--board-home-line);
+	stroke-width: 1.5;
+	stroke-linejoin: round;
+}

@@ -66,6 +66,12 @@
   --board-label: #333333;
   --board-label-halo: #ffffff;
   --board-drop: #4caf50;
+  /* Home-base zones. Marked identically rather than tinted toward each
+     owner's piece colour: on a near-white page a "white" zone is invisible,
+     and whose base is whose is already obvious from the pieces standing on
+     it. What needed saying is only that these four points are a base. */
+  --board-home-fill: rgba(0, 0, 0, 0.05);
+  --board-home-line: rgba(0, 0, 0, 0.34);
 
   /* The floating Laws-of-Form marks behind everything. */
   --distinction-ink: 0, 0, 0;
@@ -120,6 +126,8 @@
   --board-label: #aeb6c0;
   --board-label-halo: #0f1115;
   --board-drop: #6ee787;
+  --board-home-fill: rgba(255, 255, 255, 0.06);
+  --board-home-line: rgba(255, 255, 255, 0.36);
 
   --distinction-ink: 255, 255, 255;
 }

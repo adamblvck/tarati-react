@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import './Board.css';
 import Data from '../helpers/position';
 import TurnIndicator from './TurnIndicator';
+import { homeBaseZones } from '../GameBoard';
 
 // const getPosition = (vertexId, boardSize, vWidth) => {}
 
@@ -132,6 +133,25 @@ const Board = forwardRef( ({ gameState, gameBoard, isValidMove, applyMove, vWidt
 					height="auto"
 					className='board-svg'
 				>
+					{/* Home bases, drawn first so everything else sits on top.
+					    A cob promotes the moment it lands on any of these four
+					    points, and two of them per base sit on the circumference
+					    looking exactly like ordinary ring points — this zone is
+					    what makes that rule visible instead of surprising. */}
+					{homeBaseZones.map(({ color, points }) => (
+						<polygon
+							key={`home-${color}`}
+							className={`home-zone ${color === 'WHITE' ? 'is-white' : 'is-black'}`}
+							points={points
+								.map((v) => {
+									const p = Data.getPosition(v, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);
+									return `${p.x},${p.y}`;
+								})
+								.join(' ')}
+							style={{ pointerEvents: 'none' }}
+						/>
+					))}
+
 					{/* Draw Edges */}
 					{gameBoard.edges.map(([from, to], index) => {
 						const fromPos = Data.getPosition(from, {w:boardSize/aspect,h:boardSize}, vWidth, flipped);

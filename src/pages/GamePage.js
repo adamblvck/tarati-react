@@ -57,12 +57,25 @@ const GamePage = () => {
 	const [playerColor, setPlayerColor] = useState('WHITE');
 	const aiColor = playerColor === 'WHITE' ? 'BLACK' : 'WHITE';
 
-	// §6.3: when the human to move has no ordinary move, their only legal
+	// Whether the engine, rather than a human at this board, owns the side to
+	// move. With the AI disabled — or parked by an undo, which sets stopAI —
+	// both colours are played from here, so neither the move guard nor the
+	// promote bar may key off playerColor alone.
+	const aiOwnsTurn = isAI && !stopAI && gameState.currentTurn === aiColor;
+
+	// §6.3: when the side to move has no ordinary move, their only legal
 	// continuation is promoting a dead piece in place. Surface it or the game
 	// softlocks with no way to continue.
 	const promotions = useMemo(
-		() => (gameState.currentTurn === playerColor ? AI.getPromotionMoves(gameState) : []),
-		[gameState, playerColor]
+		() => (aiOwnsTurn ? [] : AI.getPromotionMoves(gameState)),
+		[gameState, aiOwnsTurn]
+	);
+
+	// isLegalMove is the full rulebook but says nothing about *who* is asking,
+	// so on its own it happily lets you drag the AI's pieces while it thinks.
+	const canMove = useCallback(
+		(state, from, to) => !aiOwnsTurn && AI.isLegalMove(state, from, to),
+		[aiOwnsTurn]
 	);
 
 	// Right sidebar (Move History) collapsed by default
@@ -476,7 +489,7 @@ const GamePage = () => {
 						vWidth={vWidth}
 						gameState={gameState}
 						gameBoard={gameBoard}
-						isValidMove={AI.isLegalMove}
+						isValidMove={canMove}
 						applyMove={applyMove}
 						promotions={promotions}
 						flipped={playerColor === 'BLACK'}

@@ -42,6 +42,21 @@ export const gameBoard = {
 	}
 };
 
+/**
+ * Each home base is a closed quadrilateral of four points — C1-C2-D2-D1 and
+ * C7-C8-D4-D3 — walking the four edges that enclose it.
+ *
+ * Renderers draw this as a filled zone, and it is the only thing on the board
+ * that tells a player C7 and C8 belong to Black's base rather than being two
+ * more points on the circumference. Without it §5.1 looks broken: 86% of all
+ * promotions happen on those four ring points, not on the D tips that read
+ * visually as "the far end", so a cob promotes where nothing marks the border.
+ */
+export const homeBaseZones = [
+	{ color: 'WHITE', points: ['C1', 'C2', 'D2', 'D1'] },
+	{ color: 'BLACK', points: ['C7', 'C8', 'D4', 'D3'] }
+];
+
 // Pre-computed adjacency list (shared by GameBoard and AI)
 export const ADJACENCY = {};
 for (const vertex of gameBoard.vertices) {

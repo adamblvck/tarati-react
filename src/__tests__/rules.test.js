@@ -4,7 +4,7 @@
  * Run with:  npm test -- --watchAll=false --testPathPattern=rules
  */
 
-import { gameBoard, applyMoveToBoard, ADJACENCY, EDGE_SET } from '../GameBoard';
+import { gameBoard, applyMoveToBoard, ADJACENCY, EDGE_SET, homeBaseZones } from '../GameBoard';
 import AI from '../AI';
 
 // ---------------------------------------------------------------------------
@@ -383,5 +383,106 @@ describe('isLegalMove and getPromotionMoves', () => {
         }
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Promotion has exactly three causes
+// ---------------------------------------------------------------------------
+
+/**
+ * A player reported cobs "becoming roks without reaching the far end". They
+ * were right about what they saw and wrong about it being a bug: 86% of §5.1
+ * promotions happen on C1/C2/C7/C8, home-base points that sit on the
+ * circumference and look like ordinary ring points.
+ *
+ * This test pins the claim that made that a UI fix rather than an engine fix —
+ * that every promotion the engine performs is one of the three documented
+ * rules — so the answer stays checkable instead of being re-derived by hand.
+ */
+describe('promotion causes', () => {
+  const oppHome = (color) =>
+    color === 'WHITE' ? gameBoard.homeBases.black : gameBoard.homeBases.white;
+
+  test('every promotion in 400 played games is §5.1, §6.3 or §6.4', () => {
+    let seed = 20260810;
+    const rnd = () => {
+      seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+      return (seed >>> 0) / 4294967296;
+    };
+
+    const unexplained = [];
+    const seen = { '5.1': 0, '6.3': 0, '6.4': 0 };
+
+    for (let game = 0; game < 400; game++) {
+      let state = makeState({
+        C1: W, C2: W, D1: W, D2: W,
+        C7: B, C8: B, D3: B, D4: B,
+      });
+
+      for (let ply = 0; ply < 200; ply++) {
+        const moves = AI.getAllPossibleMoves(state);
+        if (moves.length === 0) break;
+        const move = moves[Math.floor(rnd() * moves.length)];
+        const next = AI.ApplyMoveAI(state, move.from, move.to);
+        const countOf = (color) =>
+          Object.values(next.checkers).filter((c) => c.color === color).length;
+
+        for (const [vertex, now] of Object.entries(next.checkers)) {
+          if (!now.isUpgraded) continue;
+          // The mover is the one piece whose vertex changed; everything else
+          // stayed put, so its previous self is at the same vertex.
+          const before =
+            move.from !== move.to && vertex === move.to
+              ? state.checkers[move.from]
+              : state.checkers[vertex];
+          if (!before || before.isUpgraded) continue; // already a rok
+
+          if (move.from === move.to && vertex === move.from) seen['6.3']++;
+          else if (vertex === move.to && oppHome(before.color).includes(vertex)) seen['5.1']++;
+          else if (countOf(now.color) === 1) seen['6.4']++;
+          else unexplained.push({ game, ply, move: `${move.from}-${move.to}`, vertex });
+        }
+        state = next;
+      }
+    }
+
+    expect(unexplained).toEqual([]);
+    // Guard against the loop silently stopping to exercise anything.
+    expect(seen['5.1']).toBeGreaterThan(0);
+    expect(seen['6.3']).toBeGreaterThan(0);
+    expect(seen['6.4']).toBeGreaterThan(0);
+  });
+
+  test('striking never promotes, in either direction', () => {
+    // §5.2: a cob struck on its own base changes owner and keeps its rank. A
+    // struck piece never moves, so the only way it could end up on its new
+    // opponent's base is by standing on its own — which is exactly the case
+    // the exception covers. Conversion therefore never promotes, either way.
+
+    // Black takes A1-B1, striking the white cob sitting on C1, its own base.
+    // A1 is not adjacent to C1, so the pre-adjacency rule (§4.1) permits it.
+    const white = makeState({ A1: B, C1: W }, 'BLACK');
+    expect(applyMoveToBoard(white, 'A1', 'B1').checkers.C1)
+      .toEqual({ color: 'BLACK', isUpgraded: false });
+
+    // Same shape mirrored: White takes A1-B4 onto Black's cob on C7.
+    const black = makeState({ A1: W, C7: B }, 'WHITE');
+    expect(applyMoveToBoard(black, 'A1', 'B4').checkers.C7)
+      .toEqual({ color: 'WHITE', isUpgraded: false });
+
+    // A rok that changes owner stays a rok — it is not demoted either.
+    const rok = makeState({ A1: B, C1: Wu }, 'BLACK');
+    expect(applyMoveToBoard(rok, 'A1', 'B1').checkers.C1)
+      .toEqual({ color: 'BLACK', isUpgraded: true });
+  });
+
+  test('the drawn home-base zones are exactly the home-base points', () => {
+    // The zones are what make §5.1 visible; if they drift from the rule the
+    // board starts lying about where a cob promotes.
+    const zoneFor = (color) =>
+      [...homeBaseZones.find((z) => z.color === color).points].sort();
+    expect(zoneFor('WHITE')).toEqual([...gameBoard.homeBases.white].sort());
+    expect(zoneFor('BLACK')).toEqual([...gameBoard.homeBases.black].sort());
   });
 });
