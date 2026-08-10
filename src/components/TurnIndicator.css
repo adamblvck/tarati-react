@@ -1,7 +1,49 @@
-.turn-indicator-container {
-	border-radius: 3px;
+/* Whose turn it is — sits under the board, in the flow, readable at arm's
+   length. Deliberately not `position: fixed`: the previous version was, and
+   GamePage's react-spring transform on .game-area captured it as a containing
+   block, so it never sat where it claimed to. */
 
-	position: fixed;
-	justify-self: center;
-	align-self: center;
+.turn-strip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	flex: none;
+	padding: 8px 16px;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--bg-glass);
+	backdrop-filter: blur(12px) saturate(120%);
+	-webkit-backdrop-filter: blur(12px) saturate(120%);
+	font-family: "Archivo", sans-serif;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--text);
+	white-space: nowrap;
+}
+
+.turn-swatch {
+	width: 16px;
+	height: 16px;
+	flex: none;
+	border-radius: 50%;
+	border: 1px solid var(--border-strong);
+}
+
+.turn-swatch.is-white { background: var(--board-piece-light); }
+.turn-swatch.is-black { background: var(--board-piece-dark); }
+
+.turn-note {
+	padding: 2px 10px;
+	border-radius: 999px;
+	background: var(--accent);
+	color: var(--accent-ink);
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+	.turn-strip { font-size: 1rem; padding: 9px 18px; }
 }

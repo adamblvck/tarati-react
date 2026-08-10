@@ -1,61 +1,26 @@
-import React, { useEffect, useRef } from 'react';
-import useTurnIndicator from '../hooks/useTurnIndicator';
+import React from 'react';
 
 import './TurnIndicator.css';
 
-const TurnIndicator = ({ currentTurn, vWidth, height=100 }) => {
-	const { isAnimating } = useTurnIndicator(currentTurn);
-	const indicatorRef = useRef(null);
+/**
+ * Whose turn it is, stated in words under the board.
+ *
+ * This replaces a 5px black-and-white sliver pinned to the right edge with
+ * `position: fixed` — which GamePage's react-spring `transform` on `.game-area`
+ * silently turned into `position: absolute` anyway, so it did not even sit
+ * where it claimed to. On a phone nobody could tell whose move it was, and a
+ * board that looks inert reads as a board that is broken.
+ */
+const TurnIndicator = ({ currentTurn, yourMove = false }) => {
+	const isWhite = currentTurn === 'WHITE';
 
-	const containerStyle = {
-		width: '5px',
-		height: `${height}px`,
-		overflow: 'hidden',
-		border: '1px solid #000',
-		right:10,
-	};
-
-	const sliderStyle = {
-		width: '5px',
-		height: `${height}px`,
-		position: 'absolute',
-		transition: 'transform 0.5s ease-in-out',
-		transform: `translateY(${currentTurn === 'BLACK' ? '0' : '-100px'})`,
-	};
-
-  const blackSquareStyle = {
-    width: '5px',
-    height: `${height}px`,
-    background: 'black',
-  };
-
-  const whiteSquareStyle = {
-    width: '5px',
-    height: `${height}px`,
-    background: 'white',
-  };
-
-  useEffect(() => {
-    if (isAnimating && indicatorRef.current) {
-      const slider = indicatorRef.current.querySelector('.slider');
-      slider.style.transition = 'none';
-      slider.style.transform = `translateY(${currentTurn === 'BLACK' ? `-${height}px` : '0'})`;
-      
-      setTimeout(() => {
-        slider.style.transition = 'transform 0.5s ease-in-out';
-        slider.style.transform = `translateY(${currentTurn === 'BLACK' ? '0' : `-${height}px`})`;
-      }, 50);
-    }
-  }, [currentTurn, isAnimating, height]);
-
-  return (
-    <div className='turn-indicator-container' ref={indicatorRef} style={containerStyle}>
-      <div className="slider" style={sliderStyle}>
-        <div style={blackSquareStyle}></div>
-        <div style={whiteSquareStyle}></div>
-      </div>
-    </div>
-  );
+	return (
+		<div className="turn-strip" role="status" aria-live="polite">
+			<span className={`turn-swatch ${isWhite ? 'is-white' : 'is-black'}`} aria-hidden="true" />
+			<span className="turn-label">{isWhite ? 'White' : 'Black'} to move</span>
+			{yourMove ? <span className="turn-note">your move</span> : null}
+		</div>
+	);
 };
 
 export default TurnIndicator;
