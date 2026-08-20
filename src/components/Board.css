@@ -89,8 +89,9 @@
 	transition: filter 0.3s ease-in-out;
 }
 
-/* The piece left behind reads as "where I came from" and makes the one under
-   the finger read as lifted. */
+/* The piece has left its point and is travelling under the pointer, so it must
+   stop hit-testing — otherwise it shadows whatever it is being dragged over.
+   (There is one visual per cell and this is it; nothing is left behind.) */
 .cell.is-dragging .cell-visual { pointer-events: none; }
 
 .board-bg { fill: none; }

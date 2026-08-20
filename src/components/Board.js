@@ -4,17 +4,23 @@
 // holds a piece the current player may move) and droppable. Two structural
 // details are load-bearing and easy to undo by accident:
 //
-//   1. The node dnd-kit MEASURES is never the node that MOVES. `setDrag` sits on
-//      the outer <g>, which stays put; the transform goes on an inner <g>. dnd-kit
-//      reads client rects off the measured node, and an SVG CSS transform is in
-//      user units, so a transformed measured node reports rects that are wrong by
-//      the viewBox scale.
-//   2. The droppable ref sits on a bare circle centred on the vertex — NOT on a
-//      group containing the label. The label used to inflate every drop rect and
-//      shift its centre ~9px right and ~5px down, which is most of why dropping
-//      on a phone felt like guesswork.
+//   1. BOTH dnd-kit refs sit on `.cell-hit`, the bare circle centred on the
+//      vertex — never on the cell <g>, and never on anything that contains the
+//      piece. dnd-kit measures the node it is handed and subtracts any movement
+//      of that rect back out of the drag, on the assumption that a rect only
+//      moves when the page reflows under it. An SVG container's client rect is
+//      the union of its children, so a ref on the <g> travelled with the piece
+//      and the compensation fought the drag: 80px of travel fed back 57.9px, and
+//      the piece flickered between two positions. A circle cannot move.
+//      (The transform still belongs on an inner <g> for a second reason: an SVG
+//      CSS transform is in user units, so a transformed measured node reports
+//      rects wrong by the viewBox scale.)
+//   2. That circle carries no label. The label used to inflate every drop rect
+//      and shift its centre ~9px right and ~5px down, which is most of why
+//      dropping on a phone felt like guesswork.
 import React, { useCallback, useEffect, useMemo, useRef, useState, forwardRef } from 'react';
 import { DndContext, useDraggable, useDroppable, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useCombinedRefs } from '@dnd-kit/utilities';
 import './Board.css';
 import Data from '../helpers/position';
 import { diffMove } from '../helpers/moveDiff';
@@ -154,6 +160,12 @@ const Cell = ({
 		attributes: { tabIndex: movable ? 0 : -1, roleDescription: 'Tarati piece' },
 	});
 
+	// One node, two roles — and it has to be a node that never moves. See the
+	// note at the top of this file: dnd-kit subtracts any movement of the node it
+	// measures back out of the drag, so measuring anything that contains the
+	// piece makes the drag fight itself.
+	const setHit = useCombinedRefs(setDrop, setDrag);
+
 	// dnd-kit hands back a delta in client pixels. Inside a viewBox, `px` means
 	// user units, so it has to be divided by the scale or the piece travels at
 	// only ~59% of finger speed on a phone.
@@ -168,7 +180,6 @@ const Cell = ({
 
 	return (
 		<g
-			ref={setDrag}
 			className={`cell ${movable ? 'is-movable' : ''} ${dragging ? 'is-dragging' : ''} ${isOrigin ? 'is-origin' : ''}`}
 			onClick={() => onTap(id)}
 			{...listeners}
@@ -193,13 +204,13 @@ const Cell = ({
 				) : null}
 			</g>
 
-			{/* The touch target, and the droppable. Invisible, symmetric, and much
+			{/* The touch target, and BOTH dnd-kit refs. Invisible, symmetric, and much
 			    larger than the piece — `touch-action: none` only on cells that can
 			    actually move, so a swipe starting on an empty point still scrolls
 			    the page. The browser latches touch-action at touchstart, so this
 			    cannot be switched on once a drag begins. */}
 			<circle
-				ref={setDrop}
+				ref={setHit}
 				className="cell-hit"
 				cx={pos.x}
 				cy={pos.y}
@@ -280,6 +291,17 @@ const Board = forwardRef(({ gameState, gameBoard, isValidMove, applyMove, vWidth
 
 	const origin = activeId ?? selected;
 	const destinations = useMemo(() => (origin ? moveMap.get(origin) ?? null : null), [origin, moveMap]);
+
+	// SVG has no z-index; paint order is document order. Rendering the cells in
+	// their fixed order sent the dragged piece *underneath* the piece it was
+	// being aimed at — which, on a strike, is exactly where you are looking.
+	// Keys stay per-vertex, so React moves the existing node rather than
+	// remounting it: the dnd-kit ref and any running animation both survive, and
+	// the reorder happens once, at drag start.
+	const cellOrder = useMemo(
+		() => (activeId ? [...gameBoard.vertices.filter((v) => v !== activeId), activeId] : gameBoard.vertices),
+		[gameBoard.vertices, activeId]
+	);
 
 	// What just happened on the board.
 	//
@@ -637,7 +659,7 @@ const Board = forwardRef(({ gameState, gameBoard, isValidMove, applyMove, vWidth
 						})}
 					</g>
 
-					{gameBoard.vertices.map((vertexId) => {
+					{cellOrder.map((vertexId) => {
 						const here = positions.get(vertexId);
 						// The piece that just arrived starts at the point it left
 						// and springs the offset away. Everything else sits still.
