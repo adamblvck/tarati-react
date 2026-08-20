@@ -3,6 +3,7 @@ import { useSpring, animated } from 'react-spring';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 import AI from '../AI';
+import { AI_THINKING_PAUSE_MS, RESULT_REVEAL_MS } from '../config/motionConfig';
 import { gameBoard, applyMoveToBoard } from '../GameBoard';
 import { useBoardSize } from '../hooks/useBoardSize';
 import useNoOverscroll from '../hooks/useNoOverscroll';
@@ -28,8 +29,7 @@ const initializeGameState = () => {
 	};
 };
 
-// async function for delay 1 second
-const delay = () => new Promise(resolve => setTimeout(resolve, 100));
+const delay = () => new Promise(resolve => setTimeout(resolve, AI_THINKING_PAUSE_MS));
 
 const cloneProfiles = () => JSON.parse(JSON.stringify(AI_DIFFICULTY_PROFILES));
 
@@ -47,6 +47,10 @@ const GamePage = () => {
     const [currentMoveIndex, setCurrentMoveIndex] = useState(-1);
 	const [isAI, setIsAI] = useState(true); // AI on by default
 	const [stopAI, setStopAI] = useState(false); // AI on by default
+	// `pendingGameOver` is decided the moment the game ends; `gameOverState` is
+	// what the modal watches, and it lags by RESULT_REVEAL_MS so the move that
+	// ended the game can be seen first.
+	const [pendingGameOver, setPendingGameOver] = useState(null);
 	const [gameOverState, setGameOverState] = useState(null);
 	const [showBoardRestart, setShowBoardRestart] = useState(false);
 
@@ -108,6 +112,7 @@ const GamePage = () => {
 	};
 
 	const clearHistory = () => {
+		setPendingGameOver(null);
 		setGameOverState(null);
 		setShowBoardRestart(false);
 		setMoveHistory([]);
@@ -122,6 +127,19 @@ const GamePage = () => {
 	const moveSheetBodyRef = useRef(null);
 	const { boardSize, vWidth } = useBoardSize(boardRef);
 	useNoOverscroll();
+
+	// Let the final move play out, then announce the result.
+	//
+	// Timed rather than driven by the board's springs: the board owns its own
+	// motion and reports nothing back, and a fixed window that comfortably
+	// outlasts the slide and the strike is both simpler and impossible to
+	// deadlock. Cleared on unmount and whenever the pending result changes, so
+	// a Retry during the window cannot fire a stale modal.
+	useEffect(() => {
+		if (!pendingGameOver) return undefined;
+		const timer = setTimeout(() => setGameOverState(pendingGameOver), RESULT_REVEAL_MS);
+		return () => clearTimeout(timer);
+	}, [pendingGameOver]);
 
 	// ── Board entrance animation ──
 	const [boardMounted, setBoardMounted] = useState(false);
@@ -173,7 +191,7 @@ const GamePage = () => {
 
 			// Check for win
 			if (AI.isGameOver(nextState)) {
-				setGameOverState({
+				setPendingGameOver({
 					winner: prevState.currentTurn,
 					message: `${prevState.currentTurn} wins!`,
 					isDraw: false,
@@ -182,14 +200,14 @@ const GamePage = () => {
 			}
 			// Check for draw by threefold repetition or 50-move rule
 			else if (AI.checkThreefoldRepetition(newHashes)) {
-				setGameOverState({
+				setPendingGameOver({
 					winner: null,
 					message: 'Draw by threefold repetition — the same position has occurred three times.',
 					isDraw: true,
 				});
 				setShowBoardRestart(false);
 			} else if (AI.checkFiftyMoveRule(newCobFlags)) {
-				setGameOverState({
+				setPendingGameOver({
 					winner: null,
 					message: 'Draw by the 50-move rule — 50 consecutive moves by each player without moving or promoting a cob.',
 					isDraw: true,
@@ -335,6 +353,7 @@ const GamePage = () => {
     };
 
 	const handleContinueAfterGameOver = () => {
+		setPendingGameOver(null);
 		setGameOverState(null);
 		setShowBoardRestart(true);
 	};

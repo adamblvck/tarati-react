@@ -17,6 +17,7 @@ import {
 } from "../lib/gamesApi";
 import "./GamePage.css";
 import "./AccountPages.css";
+import { RESULT_REVEAL_MS } from "../config/motionConfig";
 
 const flip = (color) => (color === "WHITE" ? "BLACK" : "WHITE");
 
@@ -57,6 +58,13 @@ const OnlineGamePage = () => {
 
   // --- load + poll ---------------------------------------------------------
 
+  // The modal waits for the board to finish playing the move that ended the
+  // game. Online this matters more than it does locally: the finishing move and
+  // `status: "finished"` arrive together in one poll response, so without this
+  // the opponent's winning move is covered by a blurred overlay in the same
+  // frame it lands, and you never see what happened.
+  const [resultVisible, setResultVisible] = useState(false);
+
   const load = useCallback(async () => {
     // A poll that was already in flight when a move was submitted would
     // otherwise resolve afterwards and write the pre-move board back over the
@@ -96,6 +104,15 @@ const OnlineGamePage = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (game?.status !== "finished") {
+      setResultVisible(false);
+      return undefined;
+    }
+    const timer = setTimeout(() => setResultVisible(true), RESULT_REVEAL_MS);
+    return () => clearTimeout(timer);
+  }, [game?.status]);
 
   useEffect(() => {
     if (!game) return undefined;
@@ -235,7 +252,7 @@ const OnlineGamePage = () => {
 
   return (
     <div className="game-page online-game">
-      {finished && (
+      {finished && resultVisible && (
         <div className="game-over-modal-overlay" role="dialog" aria-modal="true">
           <div className={`game-over-modal ${isDraw ? "game-over-draw" : ""}`}>
             <h2>{isDraw ? "Draw" : "Game Over"}</h2>

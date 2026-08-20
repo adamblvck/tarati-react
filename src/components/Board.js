@@ -17,6 +17,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, forwardRef } 
 import { DndContext, useDraggable, useDroppable, TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
 import './Board.css';
 import Data from '../helpers/position';
+import { diffMove } from '../helpers/moveDiff';
+import useReducedMotion from '../hooks/useReducedMotion';
+import { STRIKE_DELAY_MS } from '../config/motionConfig';
 import TurnIndicator from './TurnIndicator';
 import { homeBaseZones, applyMoveToBoard } from '../GameBoard';
 
@@ -39,8 +42,108 @@ const REJECT = [10, 40, 10];
 // most of them for 50ms; this covers the stragglers.
 const TAP_AFTER_DRAG_MS = 250;
 
+/**
+ * A piece, drawn as the two-sided disc the rules describe.
+ *
+ * The patent is literal about a capture: the piece "remains on its stopping
+ * point but is turned over to show the opposite colour". So this is a coin —
+ * it turns through edge-on, swapping faces where there is nothing to see, and
+ * lifts as it goes.
+ *
+ * Both motions are CSS, not springs. Two reasons, both learned the hard way:
+ *
+ *   1. A react-spring slide driven from this component froze part-way and never
+ *      resumed — the piece sat stuck a fraction of a pathway from its point.
+ *      A CSS transition cannot get into that state.
+ *   2. A **pure translate needs no transform origin**, which is what makes the
+ *      slide safe to express in CSS at all. Scaling does need one, and this
+ *      codebase sets `transform-box` nowhere, so the turn declares
+ *      `transform-box: fill-box` for itself in Board.css rather than resolving
+ *      against the viewBox and flinging the disc off the board.
+ */
+const Piece = ({ pos, checker, pieceR, rokR, enterFrom, flipDelay, reduced }) => {
+	const isWhite = checker.color === 'WHITE';
+	const isRok = !!checker.isUpgraded;
+
+	// The slide. The piece is drawn at its destination, offset back to where it
+	// came from for its first painted frame, then released — so the browser has
+	// a start and an end to transition between.
+	//
+	// Released from an effect, deliberately not from `requestAnimationFrame`.
+	// React runs passive effects after the paint, so the browser has already
+	// seen the offset by the time this fires, and effects run whether or not the
+	// tab is visible. rAF does not: it stops dead in a hidden tab, which would
+	// leave a piece parked a full pathway from its point until the player came
+	// back — and a move arriving in a background tab is exactly what happens
+	// while you are waiting for an opponent.
+	const [offset, setOffset] = useState(() => (enterFrom && !reduced ? enterFrom : null));
+	useEffect(() => {
+		if (offset) setOffset(null);
+	}, [offset]);
+
+	// The turn. Keyed so the keyframes restart on each capture — a CSS animation
+	// only re-runs if the element is new or the animation name changes.
+	const [turn, setTurn] = useState({ key: 0, from: isWhite });
+	useEffect(() => {
+		setTurn((current) => (current.from === isWhite ? current : { key: current.key + 1, from: isWhite }));
+	}, [isWhite]);
+	const turning = turn.from !== isWhite || turn.key > 0;
+
+	const slideStyle = offset
+		? { transform: `translate(${offset.dx}px, ${offset.dy}px)`, transition: 'none' }
+		: undefined;
+
+	// The lift scales with the piece, so it reads the same on a phone and a
+	// desktop, and the delay is what makes a strike follow its cause.
+	const turnStyle = {
+		'--piece-lift': `${pieceR * 1.15}px`,
+		animationDelay: reduced ? '0ms' : `${flipDelay}ms`,
+	};
+
+	const face = (colour, up) => (
+		<circle
+			className={`piece ${colour} ${up ? 'is-face-up' : 'is-face-down'}`}
+			cx={pos.x}
+			cy={pos.y}
+			r={pieceR}
+		/>
+	);
+	const rokFace = (colour, up) => (
+		<circle
+			className={`piece-rok ${colour} ${up ? 'is-face-up' : 'is-face-down'}`}
+			cx={pos.x}
+			cy={pos.y}
+			r={rokR}
+		/>
+	);
+
+	return (
+		<g className="piece-slide" style={slideStyle}>
+			<g
+				key={turn.key}
+				className={`piece-turn ${turning ? 'is-turning' : ''}`}
+				style={turnStyle}
+			>
+				{/* Both faces are drawn, and which one shows is decided by how far
+				    the disc has turned. Separate classed circles rather than a
+				    tweened `fill`, so the theme variables still apply — and a fill
+				    tween would pass through grey and read as a fade, not a turn. */}
+				{face('is-white', isWhite)}
+				{face('is-black', !isWhite)}
+				{isRok ? (
+					<>
+						{rokFace('is-white', isWhite)}
+						{rokFace('is-black', !isWhite)}
+					</>
+				) : null}
+			</g>
+		</g>
+	);
+};
+
 const Cell = ({
 	id, pos, checker, hitR, pieceR, rokR, movable, isOrigin, scale, onTap,
+	enterFrom, flipDelay, reduced,
 }) => {
 	const { setNodeRef: setDrop } = useDroppable({ id });
 	const { setNodeRef: setDrag, listeners, attributes, transform } = useDraggable({
@@ -71,24 +174,22 @@ const Cell = ({
 			{...listeners}
 			{...attributes}
 		>
+			{/* The drag transform stays a CSS transform on this group; the
+			    slide and the turn are an SVG transform attribute on the group
+			    inside it. They are different mechanisms on different nodes, so
+			    they compose instead of overwriting each other — and only one of
+			    them is ever running at a time anyway. */}
 			<g className="cell-visual" style={visualStyle}>
 				{checker ? (
-					<>
-						<circle
-							className={`piece ${checker.color === 'WHITE' ? 'is-white' : 'is-black'}`}
-							cx={pos.x}
-							cy={pos.y}
-							r={pieceR}
-						/>
-						{checker.isUpgraded ? (
-							<circle
-								className={`piece-rok ${checker.color === 'WHITE' ? 'is-white' : 'is-black'}`}
-								cx={pos.x}
-								cy={pos.y}
-								r={rokR}
-							/>
-						) : null}
-					</>
+					<Piece
+						pos={pos}
+						checker={checker}
+						pieceR={pieceR}
+						rokR={rokR}
+						enterFrom={enterFrom}
+						flipDelay={flipDelay}
+						reduced={reduced}
+					/>
 				) : null}
 			</g>
 
@@ -179,6 +280,38 @@ const Board = forwardRef(({ gameState, gameBoard, isValidMove, applyMove, vWidth
 
 	const origin = activeId ?? selected;
 	const destinations = useMemo(() => (origin ? moveMap.get(origin) ?? null : null), [origin, moveMap]);
+
+	// What just happened on the board.
+	//
+	// Nobody tells the board what was played — not the local page, and least of
+	// all the server, which returns a whole new position on a poll. It does not
+	// need telling: exactly one point loses its occupant and one gains it, so
+	// the move falls out of a diff. `diffMove` returns null for anything that is
+	// not a single ply — an undo, a jump to the end of a replay, a poll that
+	// caught up several moves — and then the board simply snaps, which is the
+	// honest thing to do when there is no one path to show.
+	const reduced = useReducedMotion();
+
+	// Worked out during render rather than in an effect. An effect runs after
+	// the paint, so the piece would be drawn at its destination for one frame
+	// and only then jump back to its origin to start travelling. Deriving it
+	// here means the arriving piece's first painted frame is already offset.
+	//
+	// Safe under StrictMode's double render: the second pass sees `checkers`
+	// unchanged and takes the stored value rather than recomputing.
+	const tracker = useRef({ checkers: gameState.checkers, motion: null, token: 0 });
+	if (tracker.current.checkers !== gameState.checkers) {
+		const move = diffMove({ checkers: tracker.current.checkers }, gameState);
+		// §6.3 promotes in place: a ply, but nothing travels.
+		const travelling = move && !move.promotion;
+		const token = travelling ? tracker.current.token + 1 : tracker.current.token;
+		tracker.current = {
+			checkers: gameState.checkers,
+			motion: travelling ? { token, ...move } : null,
+			token,
+		};
+	}
+	const motion = tracker.current.motion;
 
 	// Drop a selection the moment its piece stops being movable — but NOT on
 	// every gameState identity change, or online polling (a fresh object every
@@ -504,21 +637,33 @@ const Board = forwardRef(({ gameState, gameBoard, isValidMove, applyMove, vWidth
 						})}
 					</g>
 
-					{gameBoard.vertices.map((vertexId) => (
-						<Cell
-							key={vertexId}
-							id={vertexId}
-							pos={positions.get(vertexId)}
-							checker={gameState.checkers[vertexId]}
-							hitR={vWidth / 2.4}
-							pieceR={vWidth / 6}
-							rokR={vWidth / 13}
-							movable={moveMap.has(vertexId)}
-							isOrigin={vertexId === origin}
-							scale={scale}
-							onTap={handleTap}
-						/>
-					))}
+					{gameBoard.vertices.map((vertexId) => {
+						const here = positions.get(vertexId);
+						// The piece that just arrived starts at the point it left
+						// and springs the offset away. Everything else sits still.
+						// (`origin` above is the selected piece — different thing.)
+						const cameFrom = motion && motion.to === vertexId
+							? positions.get(motion.from)
+							: null;
+						return (
+							<Cell
+								key={vertexId}
+								id={vertexId}
+								pos={here}
+								checker={gameState.checkers[vertexId]}
+								hitR={vWidth / 2.4}
+								pieceR={vWidth / 6}
+								rokR={vWidth / 13}
+								movable={moveMap.has(vertexId)}
+								isOrigin={vertexId === origin}
+								scale={scale}
+								onTap={handleTap}
+								enterFrom={cameFrom ? { dx: cameFrom.x - here.x, dy: cameFrom.y - here.y } : null}
+								flipDelay={motion?.struck.includes(vertexId) ? STRIKE_DELAY_MS : 0}
+								reduced={reduced}
+							/>
+						);
+					})}
 				</svg>
 			</DndContext>
 

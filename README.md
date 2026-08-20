@@ -191,3 +191,59 @@ Then run the deploy command:
 npm run deploy
 ```
 
+
+## Board motion
+
+Pieces slide between points and a captured piece turns over. Both are CSS, and
+both are driven from one derived fact: **what move just happened**.
+
+Nothing tells the board that. Locally that is an inconvenience; online it is the
+whole problem, because the opponent's move arrives on a 2.5s poll as a fresh
+`boardState` with no record of what was played. It does not need telling —
+`applyMoveToBoard` moves exactly one piece and every rule after that mutates
+`color` or `isUpgraded` in place, so exactly one point loses its occupant and
+one gains it. `src/helpers/moveDiff.js` recovers the move from that, and its
+test replays 300 random games to prove it never guesses wrong.
+
+`diffMove` returns `null` for anything that is not a single ply — an undo, a
+replay scrubbed to the end, a poll that caught up several moves — and then the
+board snaps, which is the honest thing to do when there is no one path to show.
+
+Three details are load-bearing:
+
+- **The slide is a pure translate**, which is the only reason it can be a plain
+  CSS transform: a translate has no transform origin. The turn *does* scale, so
+  `.piece-turn` declares `transform-box: fill-box` for itself — without it,
+  `transform-origin: center` resolves against the viewBox and flings the disc
+  off the board. `transform-box` is set nowhere else in this codebase.
+- **The entry offset is released from a `useEffect`, never from
+  `requestAnimationFrame`.** rAF stops dead in a hidden tab, and a move arriving
+  in a background tab is exactly what happens while you wait for an opponent —
+  the piece would sit a full pathway from its point until you came back.
+- **`delay()` before the engine thinks is 780ms, not 100ms.**
+  `AI.getNextBestMove` runs synchronously on the main thread for up to the
+  tier's `maxMs` (two seconds on Champion), so anything still animating when it
+  starts is frozen until it returns. Timings live in `src/config/motionConfig.js`
+  so the board, the engine's pause and the result reveal cannot drift apart.
+
+The game-over modal waits `RESULT_REVEAL_MS` for the final move to play out, in
+both the local and the online game. A win is very often a total conversion — the
+most worth watching move in the game — and it used to be covered by a blurred
+overlay in the frame it landed.
+
+`src/components/__tests__/BoardMotion.test.js` covers the state the board hands
+the browser, including that nothing is ever left stranded between points.
+
+## Board geometry
+
+The patent says "all lines are of equal length — stopping points are equally
+spaced from all adjacent stopping points". The layout used to miss that by
+12.9%: the circumference radius carried `- PI/12 + PI/2`, a copy-paste of the
+*angle* expression into a *radius*, and the domestic points sat at exactly
+`3 * vWidth`, leaving the four D–C pathways 13% long.
+
+Both are fixed in `src/helpers/position.js` — the single source for `Board`,
+`MiniBoard` and `SpectatePage` — and mirrored in `strategy/guide/figures.py`,
+which reproduces the same formula for the print booklet.
+`src/helpers/__tests__/position.test.js` asserts all 42 pathways are now equal.
+The web board and the native apps in `../TaratiApple` now render identically.

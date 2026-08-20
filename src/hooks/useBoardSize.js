@@ -26,7 +26,11 @@ export const useBoardSize = (boardRef) => {
         return () => window.removeEventListener('resize', updateSize);
     }, [updateSize]);
 
-    const vWidth = (boardSize - 2 * PADDING) / 6;
+    // Clamped: the container measures 0 before its first layout, which made
+    // vWidth negative and every radius derived from it with it. The console
+    // filled with "<circle> attribute r: A negative value is not valid" on
+    // every mount, and the board drew inside-out for a frame.
+    const vWidth = Math.max(0, (boardSize - 2 * PADDING) / 6);
 
     return { boardSize, vWidth };
 };

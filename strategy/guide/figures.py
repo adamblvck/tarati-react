@@ -32,6 +32,15 @@ V_WIDTH = (BOARD_SIZE - 2 * PADDING) / 6
 VB_W = BOARD_SIZE / ASPECT
 VB_H = BOARD_SIZE
 
+# Circumradius of a regular dodecagon of side 1, and how far out the domestic
+# points sit — one pathway beyond C1's height. Together these make all 42
+# pathways exactly V_WIDTH long, which is what the patent describes. The old
+# formula added the *angle* expression to the *radius* and placed D at exactly
+# 3 * V_WIDTH, leaving the D-C lines 13% long; helpers/position.js carried the
+# identical bug and carries the identical fix.
+CIRCUMFERENCE_RADIUS = 1 / (2 * math.sin(math.pi / 12))
+DOMESTIC_OFFSET = CIRCUMFERENCE_RADIUS * math.sin(5 * math.pi / 12) + 1
+
 PIECE_R = V_WIDTH / 5
 DOT_R = V_WIDTH / 14
 
@@ -55,12 +64,12 @@ def position(vertex):
         return cx + V_WIDTH * math.cos(angle), cy + V_WIDTH * math.sin(angle)
     if kind == 'C':
         angle = (index - 1) * (math.pi / 6) - math.pi / 12 + math.pi / 2
-        radius = V_WIDTH * (1 + math.sqrt(11 / 13)) - math.pi / 12 + math.pi / 2
+        radius = V_WIDTH * CIRCUMFERENCE_RADIUS
         return cx + radius * math.cos(angle), cy + radius * math.sin(angle)
     if kind == 'D':
         down = -1 if index > 2 else 1
         left = 1 if index in (1, 4) else -1
-        return cx + V_WIDTH / 2 / left, cy + V_WIDTH * 3 * down
+        return cx + V_WIDTH / 2 * left, cy + V_WIDTH * DOMESTIC_OFFSET * down
     return cx, cy
 
 
